@@ -1,32 +1,24 @@
+import cv2
 import os
-import av
 import threading
-import streamlit as st
-from streamlit_webrtc import webrtc_streamer, VideoHTMLAttributes
-from model2 import VideoFrameHandler
-from pydub import AudioSegment
-from pydub.playback import play
 import simpleaudio as sa
+from model2 import VideoFrameHandler  # Asegúrate de que este archivo tiene el procesamiento adecuado
 
 # Ruta del sonido de alarma
 alarm_file_path = os.path.join("audio", "wake_up.wav")
 
-st.title("Drowsiness Detection!")
-
 # Configuración de umbrales
-EAR_THRESH = st.slider("Eye Aspect Ratio threshold:", 0.0, 0.4, 0.18, 0.01)
-WAIT_TIME = st.slider("Seconds to wait before sounding alarm:", 0.0, 5.0, 1.0, 0.25)
+EAR_THRESH = 0.18  # Ajusta según necesidad
+WAIT_TIME = 1.0    # Segundos antes de sonar la alarma
 
 thresholds = {"EAR_THRESH": EAR_THRESH, "WAIT_TIME": WAIT_TIME}
 
-# Cargar el sonido de la alarma
-alarm_sound = AudioSegment.from_wav(alarm_file_path)
+# Cargar el modelo de detección de fatiga
+video_handler = VideoFrameHandler()
 
 # Para evitar conflictos entre hilos
 lock = threading.Lock()
 shared_state = {"play_alarm": False}
-
-video_handler = VideoFrameHandler()
 
 def play_audio():
     """Reproduce el sonido en un hilo separado."""
@@ -34,8 +26,20 @@ def play_audio():
     play_obj = wave_obj.play()
     play_obj.wait_done()
 
-def video_frame_callback(frame: av.VideoFrame):
-    frame = frame.to_ndarray(format="bgr24")
+# Inicializar la cámara
+cap = cv2.VideoCapture(0)  # Usa la cámara predeterminada
+
+if not cap.isOpened():
+    print("Error: No se pudo abrir la cámara.")
+    exit()
+
+while True:
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: No se pudo capturar el cuadro de video.")
+        break
+
+    # Procesar el cuadro con el modelo
     frame, play_alarm = video_handler.process(frame, thresholds)
 
     with lock:
@@ -45,13 +49,13 @@ def video_frame_callback(frame: av.VideoFrame):
     if play_alarm:
         threading.Thread(target=play_audio, daemon=True).start()
 
-    return av.VideoFrame.from_ndarray(frame, format="bgr24")
+    # Mostrar la imagen en una ventana
+    cv2.imshow("Detección de Fatiga", frame)
 
-# Inicializar el streamer de video
-webrtc_streamer(
-    key="driver-drowsiness-detection",
-    video_frame_callback=video_frame_callback,
-    rtc_configuration={"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]},
-    media_stream_constraints={"video": True, "audio": False},
-    video_html_attrs=VideoHTMLAttributes(autoPlay=True, controls=False, muted=False),
-)
+    # Salir con la tecla 'q'
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Liberar recursos
+cap.release()
+cv2.destroyAllWindows()
