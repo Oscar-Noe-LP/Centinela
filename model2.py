@@ -171,3 +171,37 @@ class VideoFrameHandler:
                 frame = cv2.flip(frame, 1)
     
             return frame, self.state_tracker["play_alarm"]
+
+# Configuración de umbrales
+THRESHOLDS = {
+    "EAR_THRESH": 0.25,  # Umbral para detectar ojos cerrados
+    "WAIT_TIME": 2.0     # Tiempo en segundos antes de activar la alerta
+}
+
+# Inicializar el detector de fatiga
+frame_handler = VideoFrameHandler()
+
+# Capturar video desde la cámara (usa 0 para la webcam, o reemplázalo con un archivo de video)
+cap = cv2.VideoCapture(0)  # Para archivo: cv2.VideoCapture("ruta_del_video.mp4")
+
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # Convertir el fotograma a RGB (MediaPipe usa imágenes en formato RGB)
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    # Procesar el fotograma con el detector de fatiga
+    processed_frame, alarm = frame_handler.process(frame_rgb, THRESHOLDS)
+
+    # Mostrar el resultado en una ventana de OpenCV
+    cv2.imshow("Fatigue Detection", processed_frame)
+
+    # Presionar 'q' para salir
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Liberar recursos
+cap.release()
+cv2.destroyAllWindows()
