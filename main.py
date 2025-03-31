@@ -25,7 +25,7 @@ def usuarios():
     usuarios = cursor.fetchall()
     conexion.close()
     if not usuarios:
-        return {"message": "No hay usuarios registrados"}
+        return {"mensaje": "No hay usuarios registrados"}
     else:
         return [{"id": user[0], "name": user[1]} for user in usuarios]
 
@@ -41,5 +41,3 @@ def usuario(RVP1: int):
         return {"id": usuario[0], "name": usuario[1]}
     else:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
-
