@@ -21,6 +21,8 @@ jobs:
     steps:
     - name: Checkout código
       uses: actions/checkout@v4
+      with:
+        ref: API
     - name: Configurar Python
       uses: actions/setup-python@v3
       with:
