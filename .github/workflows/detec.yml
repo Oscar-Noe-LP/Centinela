@@ -4,10 +4,12 @@
 name: Detección de fatiga
 
 on:
+  workflow_dispatch:
   push:
     branches: [ "Backend" ]
   pull_request:
     branches: [ "Backend" ]
+  
 
 permissions:
   contents: read
