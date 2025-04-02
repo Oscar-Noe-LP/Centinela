@@ -1,34 +1,33 @@
 import cv2
 import time
 import mediapipe as mp
+from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
+from math import dist, sqrt
 
-# Inicializar MediaPipe para detectar la cara
+pix = _normalized_to_pixel_coordinates
+
+# Detectar el rostro con mediapipe
 mp_face_mesh = mp.solutions.face_mesh
-detector_cara = mp_face_mesh.FaceMesh(
+cara_detectada = mp_face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True,
     min_detection_confidence=0.5,
     min_tracking_confidence=0.5
 )
 
-# Índices de los puntos clave en los ojos
-puntos_ojo_izquierdo = [362, 385, 387, 263, 373, 380]
-puntos_ojo_derecho = [33, 160, 158, 133, 153, 144]
-
-# Colores para dibujar en pantalla
-COLOR_VERDE = (0, 255, 0)
-COLOR_ROJO = (0, 0, 255)
-
-# Valores para detectar fatiga
-UMBRAL_EAR = 0.25  # Si es menor, se considera que los ojos están cerrados
-TIEMPO_MAX_CERRADOS = 2.0  # Segundos antes de activar la alerta
-
-# Variables para controlar el estado del conductor
+# Variables para la aplicación
+ojoizq = [362, 385, 387, 263, 373, 380]
+ojoder = [33, 160, 158, 133, 153, 144]
+VERDE = (0, 255, 0)
+ROJO = (0, 0, 255)
+LIMITE_EAR = 0.25  
+TIEMPO_OJOS_CERRADOS = 1.3  
 tiempo_inicio = time.perf_counter()
 tiempo_sueño_acumulado = 0.0
 alarma_activada = False
-color_actual = COLOR_VERDE
+color_alerta = VERDE
 vision_nocturna = False
+
 
 # Iniciar cámara
 camara = cv2.VideoCapture(0)
@@ -40,89 +39,87 @@ while camara.isOpened():
         break
     
     if vision_nocturna:
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-        enhanced_gray = clahe.apply(gray)
-        enhanced_gray = cv2.GaussianBlur(enhanced_gray, (5, 5), 0)
-        enhanced_frame = cv2.merge([enhanced_gray, enhanced_gray, enhanced_gray])
-        frame = enhanced_frame
+        frame_mejorado = clahe.apply(frame_gris)
+        frame_mejorado = cv2.GaussianBlur(frame_mejorado, (5, 5), 0)
+        frame_nocturno = cv2.merge([frame_mejorado, frame_mejorado, frame_mejorado])
+        frame = frame_nocturno
         
     # Convertir la imagen a RGB (MediaPipe lo requiere)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
     # Procesar la imagen con MediaPipe
-    resultados = detector_cara.process(frame_rgb)
+    resultados = cara_detectada.process(frame_rgb)
 
     if resultados.multi_face_landmarks:
         # Obtener los puntos de la cara detectada
         puntos_cara = resultados.multi_face_landmarks[0].landmark
-        altura, ancho, _ = frame.shape
+        alto, ancho, _ = frame.shape
 
         # Obtener coordenadas de los ojos
         puntos_izq = []
         puntos_der = []
 
-        for i in puntos_ojo_izquierdo:
-            x = int(puntos_cara[i].x * ancho)
-            y = int(puntos_cara[i].y * altura)
-            puntos_izq.append((x, y))
+        for i in ojoizq:
+            pci = puntos_cara[i]
+            coordsi = pix(pci.x, pci.y, ancho, alto)
+            puntos_izq.append(coordsi)
 
-        for i in puntos_ojo_derecho:
-            x = int(puntos_cara[i].x * ancho)
-            y = int(puntos_cara[i].y * altura)
-            puntos_der.append((x, y))
+        for i in ojoder:
+            pcd = puntos_cara[i]
+            coordsd = pix(pcd.x, pcd.y, ancho, alto)
+            puntos_der.append(coordsd)
 
         # Calcular EAR (Eye Aspect Ratio) para detectar si los ojos están cerrados
         try:
-            # Distancias verticales
-            d1_izq = ((puntos_izq[1][0] - puntos_izq[5][0])**2 + (puntos_izq[1][1] - puntos_izq[5][1])**2) ** 0.5
-            d2_izq = ((puntos_izq[2][0] - puntos_izq[4][0])**2 + (puntos_izq[2][1] - puntos_izq[4][1])**2) ** 0.5
-            d1_der = ((puntos_der[1][0] - puntos_der[5][0])**2 + (puntos_der[1][1] - puntos_der[5][1])**2) ** 0.5
-            d2_der = ((puntos_der[2][0] - puntos_der[4][0])**2 + (puntos_der[2][1] - puntos_der[4][1])**2) ** 0.5
-
-            # Distancias horizontales
-            d3_izq = ((puntos_izq[0][0] - puntos_izq[3][0])**2 + (puntos_izq[0][1] - puntos_izq[3][1])**2) ** 0.5
-            d3_der = ((puntos_der[0][0] - puntos_der[3][0])**2 + (puntos_der[0][1] - puntos_der[3][1])**2) ** 0.5
-
+            P1_P5_I = dist(puntos_izq[1], puntos_izq[5])
+            P2_P4_I = dist(puntos_izq[2], puntos_izq[4])
+            P0_P3_I = dist(puntos_izq[0], puntos_izq[3])
+            
+            P1_P5_D = dist(puntos_der[1], puntos_der[5])
+            P2_P4_D = dist(puntos_der[2], puntos_der[4])
+            P0_P3_D = dist(puntos_der[0], puntos_der[3])
+            
             # Cálculo del EAR
-            EAR_izq = (d1_izq + d2_izq) / (2.0 * d3_izq)
-            EAR_der = (d1_der + d2_der) / (2.0 * d3_der)
+            EAR_izq = (P1_P5_I + P2_P4_I) / (2.0 * P0_P3_I)
+            EAR_der = (P1_P5_D + P2_P4_D) / (2.0 * P0_P3_D)
             EAR_promedio = (EAR_izq + EAR_der) / 2.0
         except:
             EAR_promedio = 0.0  # Si hay un error, se pone en 0
 
         # Dibujar puntos en los ojos
         for punto in puntos_izq + puntos_der:
-            cv2.circle(frame, punto, 2, color_actual, -1)
+            cv2.circle(frame, punto, 2, color_alerta, -1)
 
         # Revisar si los ojos están cerrados
-        if EAR_promedio < UMBRAL_EAR:
+        if EAR_promedio < LIMITE_EAR:
             tiempo_actual = time.perf_counter()
             tiempo_sueño_acumulado += tiempo_actual - tiempo_inicio
             tiempo_inicio = tiempo_actual
-            color_actual = COLOR_ROJO
+            color_alerta = ROJO
 
-            if tiempo_sueño_acumulado >= TIEMPO_MAX_CERRADOS:
+            if tiempo_sueño_acumulado >= TIEMPO_OJOS_CERRADOS:
                 alarma_activada = True
-                cv2.putText(frame, "¡DESPIERTA!", (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, COLOR_ROJO, 2)
+                cv2.putText(frame, "¡DESPIERTA!", (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, ROJO, 2)
         else:
             tiempo_inicio = time.perf_counter()
             tiempo_sueño_acumulado = 0.0
-            color_actual = COLOR_VERDE
+            color_alerta = VERDE
             alarma_activada = False
 
         # Dibujar valores en pantalla
-        cv2.putText(frame, f"EAR: {round(EAR_promedio, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_actual, 2)
-        cv2.putText(frame, f"SUEÑO: {round(tiempo_sueño_acumulado, 2)} s", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_actual, 2)
+        cv2.putText(frame, f"EAR: {round(EAR_promedio, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
+        cv2.putText(frame, f"SUEÑO: {round(tiempo_sueño_acumulado, 2)} s", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
 
     else:
         # Si no se detecta una cara, reiniciar valores
         tiempo_inicio = time.perf_counter()
         tiempo_sueño_acumulado = 0.0
-        color_actual = COLOR_VERDE
+        color_alerta = VERDE
         alarma_activada = False
 
-    cv2.putText(frame, f"Vision Nocturna: {'ON' if vision_nocturna else 'OFF'}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, COLOR_VERDE, 2)
+    cv2.putText(frame, f"Vision Nocturna: {'ON' if vision_nocturna else 'OFF'}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, VERDE, 2)
     cv2.imshow("Detector de Fatiga", frame)
 
     # Presionar 'q' para salir
