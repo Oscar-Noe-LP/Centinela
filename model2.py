@@ -4,7 +4,7 @@ import numpy as np
 import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
 
-denormalize_coordinates = _normalized_to_pixel_coordinates
+coordenadas = _normalized_to_pixel_coordinates
 
 def distance(point_1, point_2):
     dist = sum([(i - j) ** 2 for i, j in zip(point_1, point_2)]) ** 0.5
@@ -16,7 +16,7 @@ def get_ear(landmarks, refer_idxs, frame_width, frame_height):
         coords_points = []
         for i in refer_idxs:
             lm = landmarks[i]
-            coord = denormalize_coordinates(lm.x, lm.y, 
+            coord = coordenadas(lm.x, lm.y, 
                                              frame_width, frame_height)
             coords_points.append(coord)
  
@@ -87,6 +87,15 @@ def plot_text(image, text, origin,
     return image
 
 
+def enhance_night_vision(frame):
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+    enhanced_gray = clahe.apply(gray)
+    enhanced_gray = cv2.GaussianBlur(enhanced_gray, (5, 5), 0)
+    enhanced_frame = cv2.merge([enhanced_gray, enhanced_gray, enhanced_gray])
+    
+    return enhanced_frame
+
 class VideoFrameHandler:
     def __init__(self):
         self.eye_idxs = {
@@ -111,6 +120,7 @@ class VideoFrameHandler:
         self.EAR_txt_pos = (10, 30)
 
     def process(self, frame: np.array, thresholds: dict):
+            frame = enhance_night_vision(frame)
             frame.flags.writeable = False
             frame_h, frame_w, _ = frame.shape
             DROWSY_TIME_txt_pos = (10, int(frame_h // 2 * 1.7))
@@ -134,9 +144,6 @@ class VideoFrameHandler:
     
                 if EAR < thresholds["EAR_THRESH"]:
     
-                    # Increase DROWSY_TIME to track the time period with 
-                    # EAR less than the threshold
-                    # and reset the start_time for the next iteration.
                     end_time = time.perf_counter()
     
                     self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
