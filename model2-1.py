@@ -2,7 +2,7 @@ import cv2
 import time
 import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
-from math import dist, sqrt
+from math import dist
 
 pix = _normalized_to_pixel_coordinates
 
@@ -17,16 +17,19 @@ cara_detectada = mp_face_mesh.FaceMesh(
 # Variables para la aplicación
 ojoizq = [362, 385, 387, 263, 373, 380]
 ojoder = [33, 160, 158, 133, 153, 144]
-boca = [61, 81, 82, 87, 178, 88, 14, 402, 317, 312, 291, 311]
+boca = [61, 81, 82, 87, 178, 88, 14, 402, 317, 312, 291]
 
 VERDE = (0, 255, 0)
 ROJO = (0, 0, 255)
 AZUL = (255, 0, 0)
 LIMITE_EAR = 0.25  
-LIMITE_MAR = 0.4
+LIMITE_MAR = 2.2
 TIEMPO_OJOS_CERRADOS = 1.3  
+TEMP_BOSTEZO_CONST = 2
 tiempo_inicio = time.perf_counter()
+tiempo_inicio_boca = time.perf_counter()
 tiempo_fatiga_acumulada = 0.0
+tiempo_bostezo = 0.0
 alarma_activada = False
 color_alerta = VERDE
 color_boca = AZUL
@@ -106,7 +109,7 @@ while camara.isOpened():
             cv2.circle(frame, punto, 2, color_alerta, -1)
         
         for point in puntos_boca:
-            cv2.circle(frame, point, 2, color_boca, 2)
+            cv2.circle(frame, point, 2, color_boca, 1)
 
         if EAR_promedio < LIMITE_EAR:
             tiempo_actual = time.perf_counter()
@@ -124,12 +127,21 @@ while camara.isOpened():
             alarma_activada = False
         
         if MAR_Norm > LIMITE_MAR:
+            tiempo_act = time.perf_counter()
+            tiempo_bostezo += tiempo_act - tiempo_inicio_boca
+            tiempo_inicio_boca = tiempo_act
             color_boca = ROJO
-            cv2.putText(frame, "¡ESTÁS BOSTEZANDO!", (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, ROJO, 2)
+            if tiempo_bostezo > TEMP_BOSTEZO_CONST:
+                cv2.putText(frame, "¡ESTAS BOSTEZANDO!", (10, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, ROJO, 2)
+        else:
+            tiempo_inicio_boca = time.perf_counter()
+            tiempo_bostezo = 0.0
+            color_boca = AZUL
 
         cv2.putText(frame, f"EAR: {round(EAR_promedio, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
-        cv2.putText(frame, f"SUENHO: {round(tiempo_fatiga_acumulada, 2)} s", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
+        cv2.putText(frame, f"Fatiga: {round(tiempo_fatiga_acumulada, 2)} s", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
         cv2.putText(frame, f"MAR: {round(MAR_Norm, 2)}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_boca, 2)
+        cv2.putText(frame, f"Bostezo: {round(tiempo_bostezo, 2)} s", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_boca, 2)
 
     else:
         tiempo_inicio = time.perf_counter()
