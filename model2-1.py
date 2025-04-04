@@ -17,13 +17,14 @@ cara_detectada = mp_face_mesh.FaceMesh(
 # Variables para la aplicación
 ojoizq = [362, 385, 387, 263, 373, 380]
 ojoder = [33, 160, 158, 133, 153, 144]
-boca = [61, 81, 82, 87, 178, 88, 14, 402, 317, 312, 291]
+boca = [61, 82, 87, 178, 88, 311, 312, 317, 14, 402, 317, 291]
+
 
 VERDE = (0, 255, 0)
 ROJO = (0, 0, 255)
 AZUL = (255, 0, 0)
 LIMITE_EAR = 0.25  
-LIMITE_MAR = 2.2
+LIMITE_MAR = 1.6
 TIEMPO_OJOS_CERRADOS = 1.3  
 TEMP_BOSTEZO_CONST = 2
 tiempo_inicio = time.perf_counter()
