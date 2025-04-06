@@ -19,19 +19,24 @@ def conectar():
     conec.execute('PRAGMA foreign_keys = ON;')
     return conec
 
-# 1. Agregar un nuevo usuario
-def agregar_nuevo_usuario(nombre, buzon, wlst, tipo_usuario, telefono):
+@app.post("/registro")
+async def agregar_nuevo_usuario(nombre:str, buzon: str, wlst: str, tipo_usuario: str, telefono: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Usuarios (Nombre, Buzón, wlst, Tipo_de_usuario, Teléfono)
         VALUES (?, ?, ?, ?, ?)
     """, (nombre, buzon, wlst, tipo_usuario, telefono))
+    usuario = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if usuario:
+        return {"mensaje": "Usuario creado con éxito"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al crear el usuario")
 
-# Función para verificar las credenciales de un usuario
-def login_usuario(buzon, wlst):
+@app.post("/login")
+async def login_usuario(buzon: str, wlst: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -39,17 +44,17 @@ def login_usuario(buzon, wlst):
         FROM Usuarios
         WHERE Buzón = ? AND wlst = ?
     """, (buzon, wlst))
-    resultado = cursor.fetchone()  # Obtener el primer resultado (de ser válido)
+    resultado = cursor.fetchone()  
     conexion.close()
     
     if resultado:
-        return resultado  # Devuelve el RVP1, Nombre y Buzón si las credenciales son correctas
+        return resultado  
     else:
-        return None  # Si no se encuentra el usuario o las credenciales no coinciden
+        raise HTTPException(status_code=400, detail="Error al obtener usuario")
 
 
-# 2. Actualizar los datos de un usuario
-def actualizar_datos_usuario(rvp1, nombre, telefono):
+@app.put("/actu_user")
+async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -57,62 +62,93 @@ def actualizar_datos_usuario(rvp1, nombre, telefono):
         SET Nombre = ?, Teléfono = ?
         WHERE RVP1 = ?
     """, (nombre, telefono, rvp1))
+    new = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if new:
+        return {"mensaje": "Usuario actualizado con éxito"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al actualizar usuario")
 
-# 3. Agregar un tono al sistema
-def agregar_tono_sistema(nombre_tono):
+@app.post("/tonos")
+async def agregar_tono_sistema(nombre_tono: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Tonos (Nombre_del_Tono)
         VALUES (?)
     """, (nombre_tono,))
+    tono = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if tono:
+        return {"mensaje": "tono agregado con éxito"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al agregar tono")
 
-# 4. Configuración de un usuario
-def configurar_alertas_usuario(rvp1, rvp8, alertas_visuales, tema_app):
+@app.post("/configuracion")
+async def configurar_alertas_usuario(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Configuración (RVP1, RVP8, Alertas_visuales, Tema_app)
         VALUES (?, ?, ?, ?)
     """, (rvp1, rvp8, alertas_visuales, tema_app))
+    conf = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if conf:
+        return {"mensaje": "configuración establecida con éxito"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al configurar app")
 
-# 5. Asociar contactos de confianza a un usuario
-def agregar_contacto_confiable(nombre_contacto, telefono_contacto):
+@app.post("/contactos")
+def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
         VALUES (?, ?)
     """, (nombre_contacto, telefono_contacto))
+    cont = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if cont:
+        return {"mensaje": "contacto agregado con éxito"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al agregar contacto")
 
-def asociar_contacto_confiable_usuario(rvp1, rvp5):
+@app.post("/contactos/asociar")
+def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Contactos_Asociados (RVP1, RVP5)
         VALUES (?, ?)
     """, (rvp1, rvp5))
+    asoc = cursor.fetchone()
     conexion.commit()
     conexion.close()
-
-# 6. Registrar una sesión de manejo
-def registrar_sesion_manejo_usuario(rvp1, fecha_inicio, hora_inicio, fecha_fin, hora_fin):
+    if asoc:
+        return {"mensaje": "contacto asociado"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al asociar contacto")
+    
+@app.post("/sesion")
+def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio, Fecha_Fin, Hora_Fin)
         VALUES (?, ?, ?, ?, ?)
     """, (rvp1, fecha_inicio, hora_inicio, fecha_fin, hora_fin))
+    sesion = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if sesion:
+        return {"mensaje": "sesion registrada"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al registrar sesion")
 
 # 7. Generar una alerta para una sesión de manejo
 def generar_alerta_sesion_manejo(rvp2, fecha, hora, ubicacion, contenido):
@@ -252,27 +288,3 @@ def eliminar_sesion_manejo_usuario(rvp2):
     conexion.commit()
     conexion.close()
 
-@app.get("/users")
-def usuarios():
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT * FROM Usuarios")
-    usuarios = cursor.fetchall()
-    conexion.close()
-    if not usuarios:
-        return {"mensaje": "No hay usuarios registrados"}
-    else:
-        return [{"id": user[0], "name": user[1]} for user in usuarios]
-
-
-@app.get("/obtener_usuario/{RVP1}")
-def usuario(RVP1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("SELECT * FROM Usuarios WHERE RVP1 = ?", (RVP1,))
-    usuario = cursor.fetchone()
-    conexion.close()
-    if usuario:
-        return {"id": usuario[0], "name": usuario[1]}
-    else:
-        raise HTTPException(status_code=404, detail="Usuario no encontrado")
