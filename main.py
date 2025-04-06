@@ -44,11 +44,12 @@ async def login_usuario(buzon: str, wlst: str):
         FROM Usuarios
         WHERE Buzón = ? AND wlst = ?
     """, (buzon, wlst))
-    resultado = cursor.fetchone()  
+    user = cursor.fetchone()  
     conexion.close()
     
-    if resultado:
-        return resultado  
+    if user:
+        id_usuario = user[0]
+        return id_usuario  
     else:
         raise HTTPException(status_code=400, detail="Error al obtener usuario")
 
@@ -103,7 +104,7 @@ async def configurar_alertas_usuario(rvp1: int, rvp8: int, alertas_visuales: boo
         raise HTTPException(status_code=400, detail="Error al configurar app")
 
 @app.post("/contactos")
-def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
+async def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -119,7 +120,7 @@ def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
         raise HTTPException(status_code=400, detail="Error al agregar contacto")
 
 @app.post("/contactos/asociar")
-def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
+async def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -135,7 +136,7 @@ def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
         raise HTTPException(status_code=400, detail="Error al asociar contacto")
     
 @app.post("/sesion")
-def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
+async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -150,29 +151,39 @@ def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: s
     else:
         raise HTTPException(status_code=400, detail="Error al registrar sesion")
 
-# 7. Generar una alerta para una sesión de manejo
-def generar_alerta_sesion_manejo(rvp2, fecha, hora, ubicacion, contenido):
+@app.post("/alertas")
+async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, contenido: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Contenido)
         VALUES (?, ?, ?, ?, ?)
     """, (rvp2, fecha, hora, ubicacion, contenido))
+    alert = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if alert:
+        return {"mensaje": "alerta guardada"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al registrar alerta")
 
-# 8. Notificar a los contactos de confianza sobre una alerta
-def notificar_contactos_confiables_alerta(rvp3, rvp5):
+@app.post("/alertas/destinatarios")
+def notificar_contactos(rvp3: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Destinatarios_de_Alertas (RVP3, RVP5)
         VALUES (?, ?)
     """, (rvp3, rvp5))
+    desti = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if desti:
+        return {"mensaje": "contacto notificado"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al notificar contacto")
 
-# 9. Configuración del modo para los padres
+@app.post("/modo_padres")
 def configurar_modo_padres_usuario(rvp1, rvp1_h, tipo_notificacion):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -183,7 +194,7 @@ def configurar_modo_padres_usuario(rvp1, rvp1_h, tipo_notificacion):
     conexion.commit()
     conexion.close()
 
-# 10. Obtener la configuración de un usuario
+
 def obtener_configuracion_usuario(rvp1):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -197,7 +208,7 @@ def obtener_configuracion_usuario(rvp1):
     conexion.close()
     return resultado
 
-# 11. Obtener los contactos de confianza asociados a un usuario
+
 def obtener_contactos_confiables_usuario(rvp1):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -211,7 +222,7 @@ def obtener_contactos_confiables_usuario(rvp1):
     conexion.close()
     return resultado
 
-# 12. Obtener las sesiones de manejo activas de un usuario
+
 def obtener_sesiones_manejo_activas_usuario(rvp1):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -224,7 +235,7 @@ def obtener_sesiones_manejo_activas_usuario(rvp1):
     conexion.close()
     return resultado
 
-# 13. Obtener las alertas generadas para una sesión de manejo
+
 def obtener_alertas_generadas_sesion(rvp1):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -238,7 +249,7 @@ def obtener_alertas_generadas_sesion(rvp1):
     conexion.close()
     return resultado
 
-# 14. Obtener los destinatarios de una alerta
+
 def obtener_destinatarios_alerta(rvp3):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -252,7 +263,7 @@ def obtener_destinatarios_alerta(rvp3):
     conexion.close()
     return resultado
 
-# 15. Obtener el modo de monitoreo parental
+
 def obtener_modo_padre_usuario(rvp1):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -266,7 +277,7 @@ def obtener_modo_padre_usuario(rvp1):
     conexion.close()
     return resultado
 
-# 16. Eliminar un contacto de confianza
+
 def eliminar_contacto_confiable_usuario(rvp1, rvp5):
     conexion = conectar()
     cursor = conexion.cursor()
@@ -274,17 +285,6 @@ def eliminar_contacto_confiable_usuario(rvp1, rvp5):
         DELETE FROM Contactos_Asociados
         WHERE RVP1 = ? AND RVP5 = ?
     """, (rvp1, rvp5))
-    conexion.commit()
-    conexion.close()
-
-# 17. Eliminar una sesión de manejo
-def eliminar_sesion_manejo_usuario(rvp2):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        DELETE FROM Sesiones_de_Manejo
-        WHERE RVP2 = ?
-    """, (rvp2,))
     conexion.commit()
     conexion.close()
 
