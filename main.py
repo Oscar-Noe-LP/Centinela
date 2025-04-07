@@ -88,7 +88,7 @@ async def agregar_tono_sistema(nombre_tono: str):
         raise HTTPException(status_code=400, detail="Error al agregar tono")
 
 @app.post("/configuracion")
-async def configurar_alertas_usuario(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
+async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -168,7 +168,7 @@ async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, conte
         raise HTTPException(status_code=400, detail="Error al registrar alerta")
 
 @app.post("/alertas/destinatarios")
-def notificar_contactos(rvp3: int, rvp5: int):
+async def notificar_contactos(rvp3: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -184,18 +184,23 @@ def notificar_contactos(rvp3: int, rvp5: int):
         raise HTTPException(status_code=400, detail="Error al notificar contacto")
 
 @app.post("/modo_padres")
-def configurar_modo_padres_usuario(rvp1, rvp1_h, tipo_notificacion):
+async def configurar_modo_padres(rvp1: int, rvp1_h: int, tipo_notificacion: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
         INSERT INTO Modo_Padres (RVP1, RVP1_H, Tipo_de_notificación)
         VALUES (?, ?, ?)
     """, (rvp1, rvp1_h, tipo_notificacion))
+    mod = cursor.fetchone()
     conexion.commit()
     conexion.close()
+    if mod:
+        return {"message": "modo padres configurado"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
 
-
-def obtener_configuracion_usuario(rvp1):
+@app.get("/configuracion/{rvp1}")
+async def obtener_configuracion_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -208,8 +213,8 @@ def obtener_configuracion_usuario(rvp1):
     conexion.close()
     return resultado
 
-
-def obtener_contactos_confiables_usuario(rvp1):
+@app.get("/contactos/{rvp1}")
+async def obtener_contactos_confiables_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -222,8 +227,8 @@ def obtener_contactos_confiables_usuario(rvp1):
     conexion.close()
     return resultado
 
-
-def obtener_sesiones_manejo_activas_usuario(rvp1):
+@app.get("/sesion/{rvp1}")
+def obtener_sesiones_manejo(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -235,8 +240,8 @@ def obtener_sesiones_manejo_activas_usuario(rvp1):
     conexion.close()
     return resultado
 
-
-def obtener_alertas_generadas_sesion(rvp1):
+@app.get("/alertas/sesion/{rvp1}")
+def obtener_alertas(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -249,8 +254,8 @@ def obtener_alertas_generadas_sesion(rvp1):
     conexion.close()
     return resultado
 
-
-def obtener_destinatarios_alerta(rvp3):
+@app.get("/alertas/destinatarios/{rvp3}")
+def obtener_destinatarios_alerta(rvp3: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -263,8 +268,8 @@ def obtener_destinatarios_alerta(rvp3):
     conexion.close()
     return resultado
 
-
-def obtener_modo_padre_usuario(rvp1):
+@app.get("/modo_padres/{rvp1}")
+def obtener_modo_padre_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -277,8 +282,8 @@ def obtener_modo_padre_usuario(rvp1):
     conexion.close()
     return resultado
 
-
-def eliminar_contacto_confiable_usuario(rvp1, rvp5):
+@app.delete("/contactos/{rvp1}/{rvp5}")
+def eliminar_contacto_confiable_usuario(rvp1: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -287,4 +292,4 @@ def eliminar_contacto_confiable_usuario(rvp1, rvp5):
     """, (rvp1, rvp5))
     conexion.commit()
     conexion.close()
-
+    return {"mensaje": "Contacto eliminado con éxito"}
