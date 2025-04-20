@@ -20,7 +20,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-const Linkapi = "https://legendary-palm-tree-g47xx567979xcrxx-8000.app.github.dev"; // sin https y con IP local
+const Linkapi = "http://192.168.1.72:8000"; // sin https y con IP local
 
 export default function App() {
   const cameraRef = useRef<CameraView>(null);
@@ -54,7 +54,7 @@ export default function App() {
   const tomarYPredecir = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6 });
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: true});
 
         if (!photo || !photo.uri) return;
 
