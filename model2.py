@@ -1,214 +1,165 @@
+from fastapi import FastAPI, File, UploadFile
 import cv2
 import time
-import numpy as np
 import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
+from math import dist
 
-coordenadas = _normalized_to_pixel_coordinates
+pix = _normalized_to_pixel_coordinates
 
-def distance(point_1, point_2):
-    dist = sum([(i - j) ** 2 for i, j in zip(point_1, point_2)]) ** 0.5
-    return dist
- 
-def get_ear(landmarks, refer_idxs, frame_width, frame_height):
-    try:
-        # Compute the euclidean distance between the horizontal
-        coords_points = []
-        for i in refer_idxs:
-            lm = landmarks[i]
-            coord = coordenadas(lm.x, lm.y, 
-                                             frame_width, frame_height)
-            coords_points.append(coord)
- 
-        # Eye landmark (x, y)-coordinates
-        P2_P6 = distance(coords_points[1], coords_points[5])
-        P3_P5 = distance(coords_points[2], coords_points[4])
-        P1_P4 = distance(coords_points[0], coords_points[3])
- 
-        # Compute the eye aspect ratio
-        ear = (P2_P6 + P3_P5) / (2.0 * P1_P4)
-    except:
-        ear = 0.0
-        coords_points = None
- 
-    return ear, coords_points
- 
-def calculate_avg_ear(landmarks, left_eye_idxs, right_eye_idxs, image_w, image_h): 
-    left_ear, left_lm_coordinates = get_ear(
-                                      landmarks, 
-                                      left_eye_idxs, 
-                                      image_w, 
-                                      image_h
-                                    )
-    right_ear, right_lm_coordinates = get_ear(
-                                      landmarks, 
-                                      right_eye_idxs, 
-                                      image_w, 
-                                      image_h
-                                    )
-    Avg_EAR = (left_ear + right_ear) / 2.0
- 
-    return Avg_EAR, (left_lm_coordinates, right_lm_coordinates)
- 
-def get_mediapipe_app(
+mp_face_mesh = mp.solutions.face_mesh
+cara_detectada = mp_face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True,
     min_detection_confidence=0.5,
-    min_tracking_confidence=0.5,
-):
-    """Initialize and return Mediapipe FaceMesh Solution Graph object"""
-    face_mesh = mp.solutions.face_mesh.FaceMesh(
-        max_num_faces=max_num_faces,
-        refine_landmarks=refine_landmarks,
-        min_detection_confidence=min_detection_confidence,
-        min_tracking_confidence=min_tracking_confidence,
-    )
- 
-    return face_mesh
- 
-def plot_eye_landmarks(frame, left_lm_coordinates, 
-                       right_lm_coordinates, color
-                       ):
-    for lm_coordinates in [left_lm_coordinates, right_lm_coordinates]:
-        if lm_coordinates:
-            frame = frame.copy()
-            for coord in lm_coordinates:
-                cv2.circle(frame, coord, 2, color, -1)
- 
-    frame = cv2.flip(frame, 1)
-    return frame
- 
- 
-def plot_text(image, text, origin, 
-              color, font=cv2.FONT_HERSHEY_SIMPLEX, 
-              fntScale=0.8, thickness=2
-              ):
-    image = cv2.putText(image, text, origin, font, fntScale, color, thickness)
-    return image
+    min_tracking_confidence=0.5
+)
+
+# Variables para la aplicación
+ojoizq = [362, 385, 387, 263, 373, 380]
+ojoder = [33, 160, 158, 133, 153, 144]
+boca = [61, 82, 87, 178, 88, 311, 312, 317, 14, 402, 317, 291]
 
 
-def enhance_night_vision(frame):
-    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
-    enhanced_gray = clahe.apply(gray)
-    enhanced_gray = cv2.GaussianBlur(enhanced_gray, (5, 5), 0)
-    enhanced_frame = cv2.merge([enhanced_gray, enhanced_gray, enhanced_gray])
-    
-    return enhanced_frame
+VERDE = (0, 255, 0)
+ROJO = (0, 0, 255)
+AZUL = (255, 0, 0)
+LIMITE_EAR = 0.25  
+LIMITE_MAR = 1.6
+TIEMPO_OJOS_CERRADOS = 1.3  
+TEMP_BOSTEZO_CONST = 2
+tiempo_inicio = time.perf_counter()
+tiempo_inicio_boca = time.perf_counter()
+tiempo_fatiga_acumulada = 0.0
+tiempo_bostezo = 0.0
+alarma_activada = False
+color_alerta = VERDE
+color_boca = AZUL
+vision_nocturna = False
 
-class VideoFrameHandler:
-    def __init__(self):
-        self.eye_idxs = {
-            "left": [362, 385, 387, 263, 373, 380],
-            "right": [33, 160, 158, 133, 153, 144],
-        }
- 
-        self.RED = (0, 0, 255)  # BGR
-        self.GREEN = (0, 255, 0)  # BGR
- 
-        # Initializing Mediapipe FaceMesh solution pipeline
-        self.facemesh_model = get_mediapipe_app()
- 
-        # For tracking counters and sharing states in and out of callbacks.
-        self.state_tracker = {
-            "start_time": time.perf_counter(),
-            "DROWSY_TIME": 0.0,  # Holds time passed with EAR < EAR_THRESH
-            "COLOR": self.GREEN,
-            "play_alarm": False,
-        }
- 
-        self.EAR_txt_pos = (10, 30)
 
-    def process(self, frame: np.array, thresholds: dict):
-            frame = enhance_night_vision(frame)
-            frame.flags.writeable = False
-            frame_h, frame_w, _ = frame.shape
-            DROWSY_TIME_txt_pos = (10, int(frame_h // 2 * 1.7))
-            ALM_txt_pos = (10, int(frame_h // 2 * 1.85))
-    
-            results = self.facemesh_model.process(frame)
-    
-            if results.multi_face_landmarks:
-                landmarks = results.multi_face_landmarks[0].landmark
-                EAR, coordinates = calculate_avg_ear(landmarks,
-                                                    self.eye_idxs["left"], 
-                                                    self.eye_idxs["right"], 
-                                                    frame_w, 
-                                                    frame_h
-                                                    )
-                frame = plot_eye_landmarks(frame, 
-                                        coordinates[0], 
-                                        coordinates[1],
-                                        self.state_tracker["COLOR"]
-                                        )
-    
-                if EAR < thresholds["EAR_THRESH"]:
-    
-                    end_time = time.perf_counter()
-    
-                    self.state_tracker["DROWSY_TIME"] += end_time - self.state_tracker["start_time"]
-                    self.state_tracker["start_time"] = end_time
-                    self.state_tracker["COLOR"] = self.RED
-    
-                    if self.state_tracker["DROWSY_TIME"] >= thresholds["WAIT_TIME"]:
-                        self.state_tracker["play_alarm"] = True
-                        plot_text(frame, "WAKE UP! WAKE UP", 
-                                ALM_txt_pos, self.state_tracker["COLOR"])
-    
-                else:
-                    self.state_tracker["start_time"] = time.perf_counter()
-                    self.state_tracker["DROWSY_TIME"] = 0.0
-                    self.state_tracker["COLOR"] = self.GREEN
-                    self.state_tracker["play_alarm"] = False
-    
-                EAR_txt = f"EAR: {round(EAR, 2)}"
-                DROWSY_TIME_txt = f"DROWSY: {round(self.state_tracker['DROWSY_TIME'], 3)} Secs"
-                plot_text(frame, EAR_txt, 
-                        self.EAR_txt_pos, self.state_tracker["COLOR"])
-                plot_text(frame, DROWSY_TIME_txt, 
-                        DROWSY_TIME_txt_pos, self.state_tracker["COLOR"])
-    
-            else:
-                self.state_tracker["start_time"] = time.perf_counter()
-                self.state_tracker["DROWSY_TIME"] = 0.0
-                self.state_tracker["COLOR"] = self.GREEN
-                self.state_tracker["play_alarm"] = False
-    
-                # Flip the frame horizontally for a selfie-view display.
-                frame = cv2.flip(frame, 1)
-    
-            return frame, self.state_tracker["play_alarm"]
+camara = cv2.VideoCapture(0)
 
-# Configuración de umbrales
-THRESHOLDS = {
-    "EAR_THRESH": 0.25,  # Umbral para detectar ojos cerrados
-    "WAIT_TIME": 2.0     # Tiempo en segundos antes de activar la alerta
-}
-
-# Inicializar el detector de fatiga
-frame_handler = VideoFrameHandler()
-
-# Capturar video desde la cámara (usa 0 para la webcam, o reemplázalo con un archivo de video)
-cap = cv2.VideoCapture(0)  # Para archivo: cv2.VideoCapture("ruta_del_video.mp4")
-
-while cap.isOpened():
-    ret, frame = cap.read()
+while camara.isOpened():
+    ret, frame = camara.read()
     if not ret:
         break
-
-    # Convertir el fotograma a RGB (MediaPipe usa imágenes en formato RGB)
+    
+    if vision_nocturna:
+        frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
+        frame_mejorado = clahe.apply(frame_gris)
+        frame_mejorado = cv2.GaussianBlur(frame_mejorado, (5, 5), 0)
+        frame_nocturno = cv2.merge([frame_mejorado, frame_mejorado, frame_mejorado])
+        frame = frame_nocturno
+        
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-    # Procesar el fotograma con el detector de fatiga
-    processed_frame, alarm = frame_handler.process(frame_rgb, THRESHOLDS)
+    resultados = cara_detectada.process(frame_rgb)
 
-    # Mostrar el resultado en una ventana de OpenCV
-    cv2.imshow("Fatigue Detection", processed_frame)
+    if resultados.multi_face_landmarks:
+        puntos_cara = resultados.multi_face_landmarks[0].landmark
+        alto, ancho, _ = frame.shape
 
-    # Presionar 'q' para salir
-    if cv2.waitKey(1) & 0xFF == ord('q'):
+        puntos_izq = []
+        puntos_der = []
+        puntos_boca = []
+
+        for i in ojoizq:
+            pci = puntos_cara[i]
+            coordsi = pix(pci.x, pci.y, ancho, alto)
+            puntos_izq.append(coordsi)
+
+        for i in ojoder:
+            pcd = puntos_cara[i]
+            coordsd = pix(pcd.x, pcd.y, ancho, alto)
+            puntos_der.append(coordsd)
+        
+        for i in boca:
+            pcb = puntos_cara[i]
+            coordsb = pix(pcb.x, pcb.y, ancho, alto)
+            puntos_boca.append(coordsb)
+
+        try:
+            #Cálculo del EAR
+            P1_P5_I = dist(puntos_izq[1], puntos_izq[5])
+            P2_P4_I = dist(puntos_izq[2], puntos_izq[4])
+            P0_P3_I = dist(puntos_izq[0], puntos_izq[3])
+            
+            P1_P5_D = dist(puntos_der[1], puntos_der[5])
+            P2_P4_D = dist(puntos_der[2], puntos_der[4])
+            P0_P3_D = dist(puntos_der[0], puntos_der[3])
+            
+            EAR_izq = (P1_P5_I + P2_P4_I) / (2.0 * P0_P3_I)
+            EAR_der = (P1_P5_D + P2_P4_D) / (2.0 * P0_P3_D)
+            EAR_promedio = (EAR_izq + EAR_der) / 2.0
+
+            #Cálculo del MAR
+            P0_P6_B = dist(puntos_boca[0], puntos_boca[6])
+            P1_P11_B = dist(puntos_boca[1], puntos_boca[11])
+            P2_P10_B = dist(puntos_boca[2], puntos_boca[10])
+            P3_P9_B = dist(puntos_boca[3], puntos_boca[9])
+            P4_P8_B = dist(puntos_boca[4], puntos_boca[8])
+            P5_P7_B = dist(puntos_boca[5], puntos_boca[7])
+            MAR_Norm = (P1_P11_B + P2_P10_B + P3_P9_B + P4_P8_B + P5_P7_B) / (2.0 * P0_P6_B)
+
+        except:
+            EAR_promedio = 0.0  
+            MAR_norm = 0.0
+ 
+        for punto in puntos_izq + puntos_der:
+            cv2.circle(frame, punto, 2, color_alerta, -1)
+        
+        for point in puntos_boca:
+            cv2.circle(frame, point, 2, color_boca, 1)
+
+        if EAR_promedio < LIMITE_EAR:
+            tiempo_actual = time.perf_counter()
+            tiempo_fatiga_acumulada += tiempo_actual - tiempo_inicio
+            tiempo_inicio = tiempo_actual
+            color_alerta = ROJO
+
+            if tiempo_fatiga_acumulada >= TIEMPO_OJOS_CERRADOS:
+                alarma_activada = True
+                cv2.putText(frame, "¡DESPIERTA!", (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 1, ROJO, 2)
+        else:
+            tiempo_inicio = time.perf_counter()
+            tiempo_fatiga_acumulada = 0.0
+            color_alerta = VERDE
+            alarma_activada = False
+        
+        if MAR_Norm > LIMITE_MAR:
+            tiempo_act = time.perf_counter()
+            tiempo_bostezo += tiempo_act - tiempo_inicio_boca
+            tiempo_inicio_boca = tiempo_act
+            color_boca = ROJO
+            if tiempo_bostezo > TEMP_BOSTEZO_CONST:
+                cv2.putText(frame, "¡ESTAS BOSTEZANDO!", (10, 300), cv2.FONT_HERSHEY_SIMPLEX, 1, ROJO, 2)
+        else:
+            tiempo_inicio_boca = time.perf_counter()
+            tiempo_bostezo = 0.0
+            color_boca = AZUL
+
+        cv2.putText(frame, f"EAR: {round(EAR_promedio, 2)}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
+        cv2.putText(frame, f"Fatiga: {round(tiempo_fatiga_acumulada, 2)} s", (10, 60), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_alerta, 2)
+        cv2.putText(frame, f"MAR: {round(MAR_Norm, 2)}", (10, 120), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_boca, 2)
+        cv2.putText(frame, f"Bostezo: {round(tiempo_bostezo, 2)} s", (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.8, color_boca, 2)
+
+    else:
+        tiempo_inicio = time.perf_counter()
+        tiempo_fatiga_acumulada = 0.0
+        color_alerta = VERDE
+        alarma_activada = False
+
+    cv2.putText(frame, f"Vision Nocturna: {'ON' if vision_nocturna else 'OFF'}", (10, 90), cv2.FONT_HERSHEY_SIMPLEX, 0.8, VERDE, 2)
+    cv2.imshow("Detector de Fatiga", frame)
+
+
+    tecla = cv2.waitKey(1) & 0xFF
+    if tecla == ord('q'):  
         break
+    elif tecla == ord('n'):  
+        vision_nocturna = not vision_nocturna
 
-# Liberar recursos
-cap.release()
+camara.release()
 cv2.destroyAllWindows()
