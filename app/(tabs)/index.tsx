@@ -20,7 +20,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-const Linkapi = "http://192.168.1.72:8000"; // sin https y con IP local
+const Linkapi = "https://legendary-palm-tree-g47xx567979xcrxx-8000.app.github.dev"; // sin https y con IP local
 
 export default function App() {
   const cameraRef = useRef<CameraView>(null);
@@ -46,7 +46,7 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       tomarYPredecir();
-    }, 4000); // cada 4 segundos
+    }, 1000); // cada 4 segundos
 
     return () => clearInterval(interval);
   }, []);
