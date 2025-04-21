@@ -29,7 +29,7 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       tomarYPredecir();
-    }, 1000); // cada 1 segundo
+    }, 2500); 
 
     return () => clearInterval(interval);
   }, []);
