@@ -1,37 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
-import {
-  SafeAreaView,
-  View,
-  StyleSheet,
-  Text,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
-import {
-  CameraView,
-  useCameraPermissions,
-  CameraMode,
-  CameraType,
-} from "expo-camera";
+import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-native";
+import {CameraView, useCameraPermissions, CameraMode, CameraType,} from "expo-camera";
 import axios from "axios";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-} from "react-native-reanimated";
+import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-native-reanimated";
 
-const Linkapi = "http://192.168.1.72:8000"; 
+const Linkapi = "https://centinela.onrender.com"; 
 
 export default function App() {
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
-  const [facing, setFacing] = useState<CameraType>("front");
-  const [cameraZoom, setCameraZoom] = useState<number>(0);
+  const [facing] = useState<CameraType>("front");
+  const [cameraZoom] = useState<number>(0);
   const [cameraMode] = useState<CameraMode>("picture");
-  const [prediction, setPrediction] = useState<any | null>(null); // Cambié a "any" para manejar los valores EAR y MAR
+  const [prediction, setPrediction] = useState<any | null>(null); 
   const [loading, setLoading] = useState(false);
 
-  // Animación
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -46,7 +29,7 @@ export default function App() {
   useEffect(() => {
     const interval = setInterval(() => {
       tomarYPredecir();
-    }, 1000); // cada 4 segundos
+    }, 1000); // cada 1 segundo
 
     return () => clearInterval(interval);
   }, []);
