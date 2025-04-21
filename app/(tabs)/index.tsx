@@ -54,7 +54,7 @@ export default function App() {
   const tomarYPredecir = async () => {
     if (cameraRef.current) {
       try {
-        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: true});
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: false});
 
         if (!photo || !photo.uri) return;
 
