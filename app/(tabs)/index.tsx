@@ -20,7 +20,7 @@ import Animated, {
   withSpring,
 } from "react-native-reanimated";
 
-const Linkapi = "http://192.168.1.72:8000"; // sin https y con IP local
+const Linkapi = "http://192.168.1.72:8000"; 
 
 export default function App() {
   const cameraRef = useRef<CameraView>(null);
