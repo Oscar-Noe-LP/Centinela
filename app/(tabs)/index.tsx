@@ -1,38 +1,44 @@
-import React, { useState, useRef, useEffect } from "react";
-import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-native";
+import React from 'react';
+import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
 
-export default function Home() {
+export default function Index({ navigation }: { navigation: any }) {
   return (
-    <SafeAreaView style={styles.container}>
-
-    </SafeAreaView>
-
+    <View style={styles.container}>
+      <Text style={styles.title}>Tu guardián al volante</Text>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Registro')}>
+        <Text style={styles.buttonText}>Registro</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Deteccion')}>
+        <Text style={styles.buttonText}>Ir a la detección</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 40,
+  },
   container: {
     flex: 1,
-    backgroundColor: "#000",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
   },
-  camera: {
-    flex: 1,
-    width: "100%",
+  button: {
+    backgroundColor: '#1ba098',
+    borderRadius: 30,
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    marginTop: 20,
   },
-  animatedContainer: {
-    position: "absolute",
-    bottom: 40,
-    alignSelf: "center",
-    padding: 10,
-    backgroundColor: "#ffffffcc",
-    borderRadius: 15,
-  },
-  predictionTextContainer: {
-    alignItems: "center",
-  },
-  predictionText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#2c3e50",
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
   },
 });
