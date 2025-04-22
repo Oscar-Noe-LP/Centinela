@@ -1,17 +1,20 @@
 import React from 'react';
 import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function Index({ navigation }: { navigation: any }) {
+export default function Index() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tu guardián al volante</Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/login')}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Registro')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/registro')}>
         <Text style={styles.buttonText}>Registro</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Deteccion')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/detección')}>
         <Text style={styles.buttonText}>Ir a la detección</Text>
       </TouchableOpacity>
     </View>
@@ -40,5 +43,6 @@ const styles = StyleSheet.create({
   buttonText: {
     color: 'white',
     textAlign: 'center',
+    fontSize: 16,
   },
 });

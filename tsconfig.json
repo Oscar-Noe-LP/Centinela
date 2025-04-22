@@ -7,7 +7,14 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "types": [
+      "expo-router",
+      "expo"
+    ],
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true
   },
   "include": [
     "**/*.ts",

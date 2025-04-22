@@ -1,4 +1,3 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,7 +7,6 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -28,12 +26,47 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
+    <>
+      <Stack
+        screenOptions={{
+          headerStyle: { 
+            backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#525FE1' 
+          },
+          headerTintColor: colorScheme === 'dark' ? '#fff' : 'white',
+          headerTitleAlign: 'center',
+          contentStyle: {
+            backgroundColor: colorScheme === 'dark' ? '#000' : '#FFF',
+          },
+        }}
+      >
+        <Stack.Screen name="index" options={{ title: 'Centinela' }} />
+        <Stack.Screen name="login" options={{ title: 'Inicio de Sesión' }} />
+        <Stack.Screen name="home" options={{ title: 'Home' }} />
+        <Stack.Screen name="registro" options={{ title: 'Registro' }} />
+        <Stack.Screen name="detección" options={{ title: 'Detección' }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
-    </ThemeProvider>
+    </>
   );
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
