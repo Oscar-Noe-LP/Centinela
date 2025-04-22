@@ -3,8 +3,10 @@ import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-nat
 
 export default function Home() {
   return (
-    <View style={styles.camera}
-    />
+    <SafeAreaView style={styles.container}>
+
+    </SafeAreaView>
+
   );
 }
 
