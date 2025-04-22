@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, View, TouchableOpacity, Image} from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
@@ -7,6 +7,12 @@ export default function Index() {
 
   return (
     <View style={styles.container}>
+      <Image
+        source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
+        style={styles.headerImg}
+        alt="Logo"
+        resizeMode="contain"
+      />
       <Text style={styles.title}>Tu guardián al volante</Text>
       <TouchableOpacity style={styles.button} onPress={() => router.push('/Login')}>
         <Text style={styles.buttonText}>Login</Text>
@@ -14,7 +20,7 @@ export default function Index() {
       <TouchableOpacity style={styles.button} onPress={() => router.push('/Registro')}>
         <Text style={styles.buttonText}>Registro</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/Deteccion')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Detección')}>
         <Text style={styles.buttonText}>Ir a la detección</Text>
       </TouchableOpacity>
     </View>
@@ -27,6 +33,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 40,
   },
+  headerImg: {
+    width: 80,
+    height: 80,
+    marginBottom: 20,
+  },
+
   container: {
     flex: 1,
     justifyContent: 'center',
