@@ -1,69 +1,154 @@
-import React from 'react';
-import { Text, StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
-import { useRouter } from 'expo-router';
+import React, { useState } from 'react';
+import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
+
+const colors = {
+  gray: '#929292',
+};
 
 export default function Login() {
-  const router = useRouter();
+  const [form, setForm] = useState({ email: '', password: '' });
+
+  const handleSignIn = () => {
+    console.log('Sign in with:', form.email, form.password);
+      // cuando quede, sigue poner la logica para auteticar usuario aqui
+
+  };
 
   return (
-    <View style={styles.padre}>
-      <View style={styles.tarjeta}>
-        <View style={styles.cajaTexto}>
-          <TextInput placeholder="correo" style={{ paddingHorizontal: 15 }} />
+    <SafeAreaView style={{ flex: 1, backgroundColor: '#e8ecf4' }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Image
+            source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
+            style={styles.headerImg}
+            alt="Logo"
+          />
+          <Text style={styles.title}>Accede a centinela</Text>
+          <Text style={styles.subtitle}>
+            Inicia sesión con tu cuenta
+          </Text>
         </View>
-        <View style={styles.cajaTexto}>
-          <TextInput placeholder="contraseña" style={{ paddingHorizontal: 15 }} secureTextEntry />
+        <View style={styles.form}>
+          <Text style={styles.inputLabel}>Correo</Text>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="email-address"
+            placeholder="arturo@example.com"
+            placeholderTextColor={colors.gray}
+            value={form.email}
+            onChangeText={(email) => setForm({ ...form, email })}
+          />
         </View>
-        <View style={styles.PadreBoton}>
+        <View style={styles.input}>
+          <Text style={styles.inputLabel}>Contraseña</Text>
+          <TextInput
+            style={styles.input}
+            autoCapitalize="none"
+            secureTextEntry
+            placeholder="********"
+            placeholderTextColor={colors.gray}
+            value={form.password}
+            onChangeText={(password) => setForm({ ...form, password })}
+          />
+        </View>
+        <View style={styles.formAction}>
           <TouchableOpacity
-            style={styles.cajaBoton}
-            onPress={() => router.push('/Home')}
+            onPress={() => {
+              handleSignIn();
+            }}
           >
-            <Text style={styles.TextoBoton}>Inicia Sesión</Text>
+            <View style={styles.btn}>
+              <Text style={styles.btnText}>iniciar sesión</Text>
+            </View>
           </TouchableOpacity>
         </View>
+        <Text style={styles.formFooter}>
+          no tienes cuenta?{' '}
+          <Text style={{ textDecorationLine: 'underline' }}>
+            Registrate
+          </Text>
+        </Text>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  padre: {
+  container: {
+    padding: 24,
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'white',
   },
-  tarjeta: {
-    margin: 20,
-    backgroundColor: 'white',
-    borderRadius: 20,
-    width: '90%',
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
+  header: {
+    marginVertical: 36,
   },
-  cajaTexto: {
-    paddingVertical: 20,
-    backgroundColor: '#cccccc40',
-    borderRadius: 30,
-    marginVertical: 10,
+  headerImg: {
+    width: 80,
+    height: 80,
+    alignSelf: 'center',
+    marginBottom: 36,
   },
-  PadreBoton: {
-    alignItems: 'center',
-  },
-  cajaBoton: {
-    backgroundColor: '#525FE1',
-    borderRadius: 30,
-    paddingVertical: 20,
-    width: 150,
-    marginTop: 20,
-  },
-  TextoBoton: {
+  title: {
+    fontSize: 27,
+    fontWeight: '700',
+    color: '#1e1e1e',
+    marginBottom: 6,
     textAlign: 'center',
-    color: 'white',
+  },
+  subtitle: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#929292',
+    textAlign: 'center',
+  },
+  form: {
+    marginBottom: 24,
+    flexGrow: 1,
+  },
+  input: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#222',
+    marginBottom: 8,
+  },
+  inputControl: {
+    height: 44,
+    backgroundColor: '#fff',
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#222',
+  },
+  formAction: {
+    marginVertical: 24,
+  },
+  btn: {
+    backgroundColor: '#1ba098',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#1ba098',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  btnText: {
+    fontSize: 18,
+    lineHeight: 26,
+    fontWeight: '600',
+    color: '#fff',
+  },
+  formFooter: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: '#222',
+    textAlign: 'center',
+    letterSpacing: 0.15,
   },
 });
