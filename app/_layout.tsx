@@ -43,7 +43,7 @@ export default function RootLayout() {
         <Stack.Screen name="Login" options={{ title: 'Inicio de Sesión' }} />
         <Stack.Screen name="Home" options={{ title: 'Home' }} />
         <Stack.Screen name="Registro" options={{ title: 'Registro' }} />
-        <Stack.Screen name="Detección" options={{ title: 'Detección' }} />
+        <Stack.Screen name="Deteccion" options={{ title: 'Detección' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
