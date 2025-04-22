@@ -40,33 +40,13 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ title: 'Centinela' }} />
-        <Stack.Screen name="login" options={{ title: 'Inicio de Sesión' }} />
-        <Stack.Screen name="home" options={{ title: 'Home' }} />
-        <Stack.Screen name="registro" options={{ title: 'Registro' }} />
-        <Stack.Screen name="detección" options={{ title: 'Detección' }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="Login" options={{ title: 'Inicio de Sesión' }} />
+        <Stack.Screen name="Home" options={{ title: 'Home' }} />
+        <Stack.Screen name="Registro" options={{ title: 'Registro' }} />
+        <Stack.Screen name="Detección" options={{ title: 'Detección' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
     </>
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
