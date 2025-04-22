@@ -17,7 +17,7 @@ export default function Login() {
         <View style={styles.PadreBoton}>
           <TouchableOpacity
             style={styles.cajaBoton}
-            onPress={() => router.push('/home')}
+            onPress={() => router.push('/Home')}
           >
             <Text style={styles.TextoBoton}>Inicia Sesión</Text>
           </TouchableOpacity>

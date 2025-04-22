@@ -8,13 +8,13 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Tu guardián al volante</Text>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/login')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Login')}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => router.push('/registro')}>
         <Text style={styles.buttonText}>Registro</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/detección')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Detección')}>
         <Text style={styles.buttonText}>Ir a la detección</Text>
       </TouchableOpacity>
     </View>
