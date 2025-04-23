@@ -8,7 +8,7 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('../../assets/images/Centinela.png')}
+        source={require('../../assets/images/Centinela.JPG')}
         style={styles.headerImg}
         alt="Logo"
         resizeMode="contain"
