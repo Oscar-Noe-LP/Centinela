@@ -19,7 +19,7 @@ export default function Login() {
       <View style={styles.container}>
         <View style={styles.header}>
           <Image
-            source={require('@/assets/images/centinela.JPG')}
+            source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
             style={styles.headerImg}
             alt="Logo"
           />

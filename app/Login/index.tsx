@@ -8,16 +8,16 @@ export default function Index() {
   return (
     <View style={styles.container}>
       <Image
-        source={require('@/assets/images/centinela.JPG')}
+        source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
         style={styles.headerImg}
         alt="Logo"
         resizeMode="contain"
       />
       <Text style={styles.title}>Tu guardián al volante</Text>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/Login')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Login/Login')}>
         <Text style={styles.buttonText}>Login</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/Registro')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/Login/Registro')}>
         <Text style={styles.buttonText}>Registro</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => router.push('/Deteccion')}>
