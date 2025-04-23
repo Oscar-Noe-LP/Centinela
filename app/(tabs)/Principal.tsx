@@ -7,6 +7,10 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text>Pantalla de Home</Text>
+      <TouchableOpacity 
+        style={styles.button} onPress={() => router.push('/')}>
+          <Text style={styles.buttonText}> Regresar a Home </Text>
+      </TouchableOpacity>
     </View>
   );
 }
