@@ -33,23 +33,30 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Calibración"
+        name="Calibracion"
         options={{
-          title: 'Calibracion',
+          title: 'Calibración',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="Detección"
+        name="Principal"
         options={{
-          title: 'Deteccion',
+          title: 'Home',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="Deteccion"
+        options={{
+          title: 'Detección',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="Configuración"
+        name="Configuracion"
         options={{
-          title: 'Explore',
+          title: 'Configuración',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
       />

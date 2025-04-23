@@ -20,7 +20,7 @@ export default function Index() {
       <TouchableOpacity style={styles.button} onPress={() => router.push('/Login/Registro')}>
         <Text style={styles.buttonText}>Registro</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/Deteccion')}>
+      <TouchableOpacity style={styles.button} onPress={() => router.push('/(tabs)/Principal')}>
         <Text style={styles.buttonText}>Ir a la detección</Text>
       </TouchableOpacity>
     </View>
