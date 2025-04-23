@@ -1,29 +1,23 @@
-import React from 'react';
-import { Text, StyleSheet, View, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { useRouter } from 'expo-router';
 
-export default function Index({ navigation }: { navigation: any }) {
+export default function Home() {
+  const router = useRouter();
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tu guardián al volante</Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Registro')}>
-        <Text style={styles.buttonText}>Registro</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Deteccion')}>
-        <Text style={styles.buttonText}>Ir a la detección</Text>
+      <Text>Pantalla de Home</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => router.push('/')}
+      >
+        <Text style={styles.buttonText}>Volver a Login</Text>
       </TouchableOpacity>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 40,
-  },
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -31,7 +25,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF',
   },
   button: {
-    backgroundColor: '#1ba098',
+    backgroundColor: '#525FE1',
     borderRadius: 30,
     paddingVertical: 15,
     paddingHorizontal: 30,
