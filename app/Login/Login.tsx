@@ -31,7 +31,7 @@ export default function Login() {
         <View style={styles.form}>
           <Text style={styles.inputLabel}>Correo</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, styles.inputControl]}
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
@@ -41,17 +41,22 @@ export default function Login() {
             onChangeText={(email) => setForm({ ...form, email })}
           />
         </View>
-        <View style={styles.input}>
+
+        <View style={styles.form}>
           <Text style={styles.inputLabel}>Contraseña</Text>
           <TextInput
-            style={styles.input}
+            style={[styles.input, styles.inputControl]}
             autoCapitalize="none"
             secureTextEntry
             placeholder="********"
             placeholderTextColor={colors.gray}
             value={form.password}
             onChangeText={(password) => setForm({ ...form, password })}
-          />
+  />
+        
+
+
+          
         </View>
         <View style={styles.formAction}>
           <TouchableOpacity
@@ -117,12 +122,14 @@ const styles = StyleSheet.create({
   },
   inputControl: {
     height: 44,
+    borderWidth: 1,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
+    paddingVertical: 8,
     borderRadius: 12,
     fontSize: 15,
     fontWeight: '500',
-    color: '#222',
+    color: '#ccc',
   },
   formAction: {
     marginVertical: 24,
@@ -131,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1ba098',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1ba098',
+    borderColor: 'black',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
