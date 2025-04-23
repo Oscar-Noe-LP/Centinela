@@ -7,12 +7,6 @@ export default function Home() {
   return (
     <View style={styles.container}>
       <Text>Pantalla de Home</Text>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={() => router.push('/')}
-      >
-        <Text style={styles.buttonText}>Volver a Login</Text>
-      </TouchableOpacity>
     </View>
   );
 }
