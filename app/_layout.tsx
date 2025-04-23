@@ -30,6 +30,14 @@ export default function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="Login/index" options={{title: 'Centinela'}}/>
+        <Stack.Screen name="Login/Login" options={{title: 'Inicio de sesión'}}/>
+        <Stack.Screen name="Login/Registro" options={{title: 'Registro de usuario'}}/>
+        <Stack.Screen name="(tabs)/Principal" options={{title: 'Home'}}/>
+        <Stack.Screen name="(tabs)/Deteccion" options={{title: 'Detección'}}/>
+        <Stack.Screen name="(tabs)/Perfil" options={{title: 'Perfil de usuario'}}/>
+        <Stack.Screen name="(tabs)/Configuracion" options={{title: 'Configuraciones'}}/>
+        <Stack.Screen name="(tabs)/Calibracion" options={{title: 'Calibración'}}/>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
