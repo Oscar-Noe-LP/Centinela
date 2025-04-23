@@ -38,7 +38,6 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)/Perfil" options={{title: 'Perfil de usuario'}}/>
         <Stack.Screen name="(tabs)/Configuracion" options={{title: 'Configuraciones'}}/>
         <Stack.Screen name="(tabs)/Calibracion" options={{title: 'Calibración'}}/>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
