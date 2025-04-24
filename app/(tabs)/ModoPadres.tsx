@@ -101,7 +101,7 @@ export default function ModuloPadres() {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={estilos.telefonoHijo}>📱 {hijo.telefono}</Text>
+        <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
       </View>
     ))}
 
@@ -146,15 +146,15 @@ export default function ModuloPadres() {
               onChangeText={setTelefonoNuevoHijo}
               keyboardType="phone-pad"
             />
-            <TouchableOpacity style={estilos.botonAccion} onPress={agregarHijo}>
-              <Text style={estilos.textoBoton}>Agregar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={estilos.botonAccion}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={estilos.textoBoton}>Cancelar</Text>
-            </TouchableOpacity>
+            <View style={estilos.contenedorBotonesModal}>
+              <TouchableOpacity style={estilos.botonModal} onPress={agregarHijo}>
+                <Text style={estilos.textoBoton}>Aceptar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={estilos.botonModal} onPress={() => setModalVisible(false)}>
+                <Text style={estilos.textoBoton}>Cancelar</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -207,13 +207,9 @@ const estilos = StyleSheet.create({
   hijoContenedor: {
     marginBottom: 10,
   },
-  botonesHijo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 5,
-  },
   botonAccion: {
     backgroundColor: '#00BFA5',
+    height: '100%',
     padding: 8,
     borderRadius: 6,
     alignItems: 'center',
@@ -246,6 +242,7 @@ const estilos = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
     borderRadius: 10,
+    height: '40%',
   },
   tituloModal: {
     fontSize: 18,
@@ -263,19 +260,37 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
+    paddingVertical: 8,
+  },
+  infoHijo: {
+    flexDirection: 'column',
+    flex: 1,
+  },
+  botonesHijo: {
+    flexDirection: 'row',
+    gap: 6,
+    width: '75%',
   },
   hijoNombre: {
-    flexShrink: 1,
     fontWeight: 'bold',
     fontSize: 16,
-    maxWidth: '35%',
   },
   telefonoHijo: {
     fontSize: 12,
     color: 'gray',
-    marginLeft: 4,
+  },
+  contenedorBotonesModal: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    gap: 10, // separa los botones
   },
   
+  botonModal: {
+    flex: 1, // hace que ambos botones midan lo mismo
+    paddingVertical: 10,
+    backgroundColor: '#007bff',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
 });
