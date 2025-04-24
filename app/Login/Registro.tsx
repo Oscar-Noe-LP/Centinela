@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
 
 const colors = {
   gray: '#929292',
@@ -17,18 +16,16 @@ export default function Registro() {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#e8ecf4' }}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={{ marginTop:1}}>
           <Image
             source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
             style={styles.headerImg}
             alt="Logo"
-            resizeMode="contain"
-            onError={(error) => console.log('Error loading image:', error.nativeEvent.error)}
           />
           <Text style={styles.title}>Regístrate en Centinela</Text>
           <Text style={styles.subtitle}>Crea tu cuenta para empezar</Text>
         </View>
-        <View style={styles.form}>
+        <View style={{marginTop: 16}}>
           <Text style={styles.inputLabel}>Nombre</Text>
           <TextInput
             style={[styles.input, styles.inputControl]}
@@ -40,7 +37,7 @@ export default function Registro() {
             onChangeText={(name) => setForm({ ...form, name })}
           />
         </View>
-        <View style={styles.form}>
+        <View style={{marginTop: 1}}>
           <Text style={styles.inputLabel}>Correo</Text>
           <TextInput
             style={[styles.input, styles.inputControl]}
@@ -53,7 +50,7 @@ export default function Registro() {
             onChangeText={(email) => setForm({ ...form, email })}
           />
         </View>
-        <View style={styles.form}>
+        <View style={{marginTop: 1}}>
           <Text style={styles.inputLabel}>Contraseña</Text>
           <TextInput
             style={[styles.input, styles.inputControl]}
@@ -77,6 +74,11 @@ export default function Registro() {
           <Text style={{ textDecorationLine: 'underline' }}>Inicia sesión</Text>
         </Text>
       </View>
+      <View style={styles.contenedor_pie}>
+          <Text style={styles.piepagina}>
+            ©Centinela 2025. TODOS LOS DERECHOS RESERVADOS.
+          </Text>
+      </View>
     </SafeAreaView>
   );
 }
@@ -84,16 +86,13 @@ export default function Registro() {
 const styles = StyleSheet.create({
   container: {
     padding: 24,
-    flex: 1,
-  },
-  header: {
-    marginVertical: 36,
+    flex: 1,  
   },
   headerImg: {
-    width: 80,
-    height: 80,
+    width: 150,
+    height: 150,
     alignSelf: 'center',
-    marginBottom: 36,
+    marginBottom: 10,
   },
   title: {
     fontSize: 27,
@@ -108,9 +107,6 @@ const styles = StyleSheet.create({
     color: '#929292',
     textAlign: 'center',
   },
-  form: {
-    marginBottom: 24,
-  },
   input: {
     marginBottom: 16,
   },
@@ -124,19 +120,22 @@ const styles = StyleSheet.create({
     height: 44,
     backgroundColor: '#fff',
     paddingHorizontal: 16,
-    borderRadius: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     fontSize: 15,
     fontWeight: '500',
-    color: '#222',
+    color: '#ccc',
     borderWidth: 1,
     borderColor: 'black',
   },
   formAction: {
-    marginVertical: 24,
+    marginVertical: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   btn: {
     backgroundColor: '#1ba098',
-    borderRadius: 8,
+    borderRadius: 24,
     borderWidth: 1,
     borderColor: '#1ba098',
     flexDirection: 'row',
@@ -157,5 +156,14 @@ const styles = StyleSheet.create({
     color: '#222',
     textAlign: 'center',
     letterSpacing: 0.15,
+  },
+  contenedor_pie: {
+    alignItems: "center",
+    marginBottom: 5,
+  },
+  piepagina: {
+    fontSize: 14,
+    color: "#293855",
+    textAlign: "center",
   },
 });

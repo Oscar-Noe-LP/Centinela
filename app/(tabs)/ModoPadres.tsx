@@ -101,7 +101,7 @@ export default function ModuloPadres() {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
+        <Text style={estilos.telefonoHijo}>📱 {hijo.telefono}</Text>
       </View>
     ))}
 
@@ -207,6 +207,11 @@ const estilos = StyleSheet.create({
   hijoContenedor: {
     marginBottom: 10,
   },
+  botonesHijo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 5,
+  },
   botonAccion: {
     backgroundColor: '#00BFA5',
     padding: 8,
@@ -258,22 +263,19 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
-  },
-  infoHijo: {
-    flexDirection: 'column',
-    flex: 1,
-  },
-  botonesHijo: {
-    flexDirection: 'row',
-    gap: 6,
+    gap: 8,
+    flexWrap: 'wrap',
   },
   hijoNombre: {
+    flexShrink: 1,
     fontWeight: 'bold',
     fontSize: 16,
+    maxWidth: '35%',
   },
   telefonoHijo: {
     fontSize: 12,
     color: 'gray',
+    marginLeft: 4,
   },
+  
 });

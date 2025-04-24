@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from 'react-native';
 export default function Configuracion() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Perfil</Text>
+      <Text style={styles.title}>Perfil y configuración</Text>
     </View>
   );
 }

@@ -1,10 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export default function Configuracion() {
+export default function Historial() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Configuración</Text>
+      <Text style={styles.title}>Historial de alertas</Text>
     </View>
   );
 }

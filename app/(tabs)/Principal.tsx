@@ -1,17 +1,24 @@
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function Home() {
   const router = useRouter();
 
   return (
-    <View style={styles.container}>
-      <Text>Pantalla de Home</Text>
+    <SafeAreaView style={styles.container}>
+      <Text>Bienvenido a Centinela, comencemos con la detección</Text>
+      <Image
+        source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
+        style={styles.headerImg}
+        alt="Logo"
+        resizeMode="contain"
+      />
+      <Text>Navega entre las pantallas a través de la barra inferior</Text>
       <TouchableOpacity 
         style={styles.button} onPress={() => router.push('/')}>
           <Text style={styles.buttonText}> Regresar a Home </Text>
       </TouchableOpacity>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -33,4 +40,11 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
   },
+  headerImg: {
+    width: 80,
+    height: 80,
+    alignSelf: 'center',
+    marginBottom: 15,
+    marginTop: 20,
+  }
 });

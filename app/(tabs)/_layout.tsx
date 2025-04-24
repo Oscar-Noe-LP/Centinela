@@ -54,10 +54,17 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="Configuracion"
+        name="Historial"
         options={{
-          title: 'Configuración',
+          title: 'Historial',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="ModoPadres"
+        options={{
+          title: 'ModoPadres',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
     </Tabs>
