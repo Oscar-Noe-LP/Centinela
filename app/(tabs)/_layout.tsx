@@ -1,12 +1,13 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Platform } from 'react-native';
-
+import Historial from './Historial';
 import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -59,6 +60,7 @@ export default function TabLayout() {
           title: 'Historial',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
+<<<<<<< HEAD
       />
       <Tabs.Screen
         name="ModoPadres"
@@ -67,6 +69,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
+=======
+/>
+>>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6
     </Tabs>
   );
 }

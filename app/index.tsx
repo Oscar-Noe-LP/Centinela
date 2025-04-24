@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import React from 'react';
 import { Text, StyleSheet, View, TouchableOpacity, Image, SafeAreaView} from 'react-native';
+=======
+import React, { useEffect } from 'react';
+import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
+>>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6
 import { useRouter } from 'expo-router';
 
 export default function Index() {
@@ -64,6 +69,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
   },
+<<<<<<< HEAD
   header: {
     fontSize: 50,
     marginBottom: 20,
@@ -81,3 +87,6 @@ const styles = StyleSheet.create({
   },
 
 });
+=======
+});
+>>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6
