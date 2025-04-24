@@ -1,31 +1,4 @@
 import React from 'react';
-<<<<<<< HEAD
-import { View, Text, StyleSheet } from 'react-native';
-
-<<<<<<<< HEAD:app/(tabs)/Historial.tsx
-export default function Historial() {
-========
-export default function ModoPadres() {
->>>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6:app/(tabs)/ModoPadres
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Historial de alertas</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-=======
 import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 
 export default function Historial() {
@@ -174,5 +147,4 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#E0E0E0',
     },
->>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6
 });

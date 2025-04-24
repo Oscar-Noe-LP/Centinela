@@ -60,7 +60,6 @@ export default function TabLayout() {
           title: 'Historial',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
         }}
-<<<<<<< HEAD
       />
       <Tabs.Screen
         name="ModoPadres"
@@ -69,9 +68,6 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
-=======
-/>
->>>>>>> 199b211ca2362ee6bc57ee6d4c0cbd6523a504a6
     </Tabs>
   );
 }
