@@ -1,5 +1,5 @@
-import React from 'react';
-import { Text, StyleSheet, View, TouchableOpacity, Image} from 'react-native';
+import React, { useEffect } from 'react';
+import { Text, StyleSheet, View, TouchableOpacity, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function Index() {
