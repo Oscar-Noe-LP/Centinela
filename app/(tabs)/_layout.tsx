@@ -67,6 +67,16 @@ export default function TabLayout() {
           title: 'ModoPadres',
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
+        />
+        <Tabs.Screen
+          name="Configuracion"
+          options={{
+            title: 'Configuración',
+            tabBarIcon: ({ color }) => <IconSymbol size={28} name="gearshape.fill" color={color} />,
+          }}
+      
+      
+      
       />
     </Tabs>
   );
