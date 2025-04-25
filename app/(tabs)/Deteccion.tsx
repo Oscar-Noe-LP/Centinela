@@ -3,6 +3,8 @@ import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-nat
 import {CameraView, useCameraPermissions, CameraMode, CameraType,} from "expo-camera";
 import axios from "axios";
 import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-native-reanimated";
+import {useIsFocused} from '@react-navigation/native';
+
 
 const Linkapi = "https://centinela.onrender.com"; 
 
@@ -14,6 +16,8 @@ export default function Deteccion() {
   const [cameraMode] = useState<CameraMode>("picture");
   const [prediction, setPrediction] = useState<any | null>(null); 
   const [loading, setLoading] = useState(false);
+  const estaEnfocada = useIsFocused();
+  const [MostrarCamara, setMostrarCamara] = useState(false);
 
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -27,12 +31,19 @@ export default function Deteccion() {
   }, [permission]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      tomarYPredecir();
-    }, 2500); 
-
-    return () => clearInterval(interval);
-  }, []);
+    if (estaEnfocada) {
+      setMostrarCamara(true);
+      const interval = setInterval(() => {
+        tomarYPredecir();
+      }, 2500); 
+  
+      return () => clearInterval(interval); 
+    }
+    else {
+      setMostrarCamara(false);
+      setPrediction(null);
+    }
+  }, [estaEnfocada]);
 
   const tomarYPredecir = async () => {
     if (cameraRef.current) {
@@ -93,15 +104,17 @@ export default function Deteccion() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <CameraView
-        ref={cameraRef}
-        style={styles.camera}
-        mode={cameraMode}
-        zoom={cameraZoom}
-        facing={facing}
-        ratio="16:9"
-        animateShutter={false}
-      />
+        {MostrarCamara && (
+        <CameraView
+          ref={cameraRef}
+          style={styles.camera}
+          mode={cameraMode}
+          zoom={cameraZoom}
+          facing={facing}
+          ratio="16:9"
+          animateShutter={false}
+        />
+      )}
       <Animated.View style={[styles.animatedContainer, animatedStyle]}>
         {loading && <ActivityIndicator size="large" color="#48c9b0" />}
         {prediction && !loading && (
@@ -121,6 +134,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#000",
+  },
+  tituloPrincipal: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    marginTop: 20,
   },
   camera: {
     flex: 1,
