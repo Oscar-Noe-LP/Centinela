@@ -6,7 +6,7 @@ import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-nat
 import {useIsFocused} from '@react-navigation/native';
 
 
-const Linkapi = "ws://192.168.1.8:8000/ws"; 
+const Linkapi = "ws://192.168.1.72:8000/ws/deteccion"; 
 
 export default function Deteccion() {
   const cameraRef = useRef<CameraView>(null);
@@ -41,6 +41,7 @@ export default function Deteccion() {
   
       return () => 
         clearInterval(interval);
+        desconectarWebSocket();
     }
     else {
       setMostrarCamara(false);
@@ -51,6 +52,11 @@ export default function Deteccion() {
 
 
   const conectarWebSocket = () => {
+    if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+      console.log("WebSocket ya está abierto");
+      return; // Ya está conectado, no hacer nada más
+    }
+
     socketRef.current = new WebSocket(Linkapi);
 
     socketRef.current.onopen = () => {
@@ -103,7 +109,7 @@ export default function Deteccion() {
     
             if (manipulada.base64) {
               socketRef.current.send(JSON.stringify({
-                imagen_base64: manipulada.base64,
+                imagen: manipulada.base64,
               }));
     
               setLoading(true);
@@ -120,7 +126,8 @@ export default function Deteccion() {
         }
       }
     };
-  if (!permission || permission.status !== "granted") {
+
+    if (!permission || permission.status !== "granted") {
     return (
       <SafeAreaView style={styles.container}>
         <Text>No tienes permiso para la cámara</Text>
