@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
 import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-native";
 import {CameraView, useCameraPermissions, CameraMode, CameraType,} from "expo-camera";
-import * as ImageManipulator from 'expo-image-manipulator';
+import axios from "axios";
 import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-native-reanimated";
 import {useIsFocused} from '@react-navigation/native';
 
 
-const Linkapi = "ws://192.168.1.8:8000/ws"; 
+const Linkapi = "https://centinela.onrender.com"; 
 
 export default function Deteccion() {
   const cameraRef = useRef<CameraView>(null);
@@ -18,7 +18,6 @@ export default function Deteccion() {
   const [loading, setLoading] = useState(false);
   const estaEnfocada = useIsFocused();
   const [MostrarCamara, setMostrarCamara] = useState(false);
-  const socketRef = useRef<WebSocket | null>(null);
 
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -34,92 +33,67 @@ export default function Deteccion() {
   useEffect(() => {
     if (estaEnfocada) {
       setMostrarCamara(true);
-      conectarWebSocket();
       const interval = setInterval(() => {
         tomarYPredecir();
-      }, 500); 
+      }, 2500); 
   
-      return () => 
-        clearInterval(interval);
+      return () => clearInterval(interval); 
     }
     else {
       setMostrarCamara(false);
       setPrediction(null);
-      desconectarWebSocket();
     }
   }, [estaEnfocada]);
 
+  const tomarYPredecir = async () => {
+    if (cameraRef.current) {
+      try {
+        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: false});
 
-  const conectarWebSocket = () => {
-    socketRef.current = new WebSocket(Linkapi);
+        if (!photo || !photo.uri) return;
 
-    socketRef.current.onopen = () => {
-      console.log("WebSocket conectado");
-    };
+        setLoading(true);
+        scale.value = withSpring(0.8);
+        opacity.value = withSpring(0.5);
 
-    socketRef.current.onmessage = (message) => {
-      const data = JSON.parse(message.data);
-      if (data.error) {
-        console.log("Error del servidor:", data.error);
-      } else {
-        const { EAR, MAR, Bostezo, Fatiga } = data;
-        setPrediction({
-          EAR: EAR?.toFixed(2),
-          MAR: MAR?.toFixed(2),
-          Bostezo: Bostezo ? "Sí" : "No",
-          Fatiga: Fatiga ? "Sí" : "No",
+        const uriParts = photo.uri.split(".");
+        const fileType = uriParts[uriParts.length - 1];
+
+        const formData = new FormData();
+        formData.append("file", {
+          uri: photo.uri,
+          name: `frame.${fileType}`,
+          type: `image/${fileType}`,
+        } as any);
+
+        const respuesta = await axios.post(`${Linkapi}/detección`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
+
+        if (respuesta.data) {
+          // Aquí manejo la respuesta con EAR, MAR y Fatiga
+          const { EAR, MAR, Bostezo, Fatiga } = respuesta.data;
+
+          setPrediction({
+            EAR: EAR.toFixed(2),
+            MAR: MAR.toFixed(2),
+            Bostezo: Bostezo ? "Sí" : "No",
+            Fatiga: Fatiga ? "Sí" : "No",
+          });
+        }
+      } catch (error) {
+        console.log("Error al mandar frame:", error);
+        setPrediction("Error");
+      } finally {
+        setLoading(false);
+        scale.value = withSpring(1);
+        opacity.value = withSpring(1);
       }
-    };
-
-    socketRef.current.onerror = (error) => {
-      console.error("WebSocket error:", error);
-    };
-
-    socketRef.current.onclose = () => {
-      console.log("WebSocket cerrado");
-    };
-  };
-
-  const desconectarWebSocket = () => {
-    if (socketRef.current) {
-      socketRef.current.close();
-      socketRef.current = null;
     }
   };
 
-  const tomarYPredecir = async () => {
-    if (cameraRef.current && socketRef.current?.readyState === WebSocket.OPEN) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: false, skipProcessing: true});
-
-
-        if (photo && photo.uri) {
-            const manipulada = await ImageManipulator.manipulateAsync(
-              photo.uri,
-              [{ resize: { width: 300 } }], // Puedes ajustar el tamaño aquí
-              { compress: 0.5, format: ImageManipulator.SaveFormat.JPEG, base64: true }
-            );
-    
-            if (manipulada.base64) {
-              socketRef.current.send(JSON.stringify({
-                imagen_base64: manipulada.base64,
-              }));
-    
-              setLoading(true);
-              scale.value = withSpring(0.8);
-              opacity.value = withSpring(0.5);
-            }
-          }
-        } catch (error) {
-          console.log("Error capturando frame:", error);
-        } finally {
-          scale.value = withSpring(1);
-          opacity.value = withSpring(1);
-          setLoading(false);
-        }
-      }
-    };
   if (!permission || permission.status !== "granted") {
     return (
       <SafeAreaView style={styles.container}>
