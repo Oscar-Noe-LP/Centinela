@@ -9,9 +9,8 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Centinela</Text>
       <Image
-        source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
+        source={require('@/assets/images/centinela.JPG')}
         style={styles.headerImg}
-        alt="Logo"
         resizeMode="contain"
       />
       <Text style={styles.title}>Tu guardián al volante</Text>
