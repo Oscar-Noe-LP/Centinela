@@ -9,7 +9,7 @@ export default function Index() {
     <SafeAreaView style={styles.container}>
       <Text style={styles.header}>Centinela</Text>
       <Image
-        source={require('../../assets/images/centinela.JPG')}
+        source={require('../assets/images/centinela.JPG')}
         style={styles.headerImg}
         resizeMode="contain"
       />
