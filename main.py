@@ -1,21 +1,20 @@
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, WebSocket, HTTPException
 import logging
 from fastapi.middleware.gzip import GZipMiddleware
-import sqlite3
 import cv2
+import sqlite3
 import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
 from math import dist
 import numpy as np
-import base64
 from fastapi.middleware.cors import CORSMiddleware
+import base64
+
 
 # Configuración de logs
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
-app = FastAPI()
-app.add_middleware(GZipMiddleware, minimum_size=1000)
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
@@ -51,6 +50,7 @@ def conectar():
     conec = sqlite3.connect("centinela.db")
     conec.execute('PRAGMA foreign_keys = ON;')
     return conec
+
 
 def procesar_frame(frame):
     frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
