@@ -108,7 +108,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={{ uri: `https://github.com/Oscar-Noe-LP/Centinela/blob/Frontend/assets/images/Personalizado.JPG?raw=true${cacheBuster}` }}
+                source={require('../../assets/images/Personalizado.JPG')}
                 style={styles.toneIcon}
               />
             </View>
