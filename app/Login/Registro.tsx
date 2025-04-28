@@ -18,7 +18,7 @@ export default function Registro() {
       <View style={styles.container}>
         <View style={{ marginTop:1}}>
           <Image
-            source={require('@/assets/images/centinela.JPG')}
+            source={require('../../assets/images/centinela.JPG')}
             style={styles.headerImg}
             alt="Logo"
           />
