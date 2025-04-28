@@ -72,7 +72,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={{ uri: `https://github.com/Oscar-Noe-LP/Centinela/blob/Frontend/assets/images/Lluvia.JPG?raw=true${cacheBuster}` }}
+                source={require('../../assets/images/Lluvia.JPG')}
                 style={styles.toneIcon}
               />
             </View>
@@ -84,7 +84,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={{ uri: `https://github.com/Oscar-Noe-LP/Centinela/blob/Frontend/assets/images/Musica.JPG?raw=true${cacheBuster}` }}
+                source={require('../../assets/images/Musica.JPG')}
                 style={styles.toneIcon}
               />
             </View>
@@ -96,7 +96,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={{ uri: `https://github.com/Oscar-Noe-LP/Centinela/blob/Frontend/assets/images/Pajaro.JPG?raw=true${cacheBuster}` }}
+                source={require('../../assets/images/Pajaro.JPG')}
                 style={styles.toneIcon}
               />
             </View>
