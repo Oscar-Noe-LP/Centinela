@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, File, UploadFile
+from fastapi import FastAPI, HTTPException, WebSocket
 import logging
 from fastapi.middleware.gzip import GZipMiddleware
 import sqlite3
@@ -7,7 +7,8 @@ import mediapipe as mp
 from mediapipe.python.solutions.drawing_utils import _normalized_to_pixel_coordinates
 from math import dist
 import numpy as np
-
+import base64
+from fastapi.middleware.cors import CORSMiddleware
 
 # Configuración de logs
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -15,6 +16,16 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+app = FastAPI()
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  
+    allow_credentials=True,
+    allow_methods=["*"],  
+    allow_headers=["*"], 
+)
+
 
 @app.get("/")
 def inicio():
@@ -41,13 +52,7 @@ def conectar():
     conec.execute('PRAGMA foreign_keys = ON;')
     return conec
 
-
-
-@app.post("/detección")
-async def analizar_imagen(file: UploadFile = File(...)):
-    anls = await file.read()
-    imgnp = np.frombuffer(anls, np.uint8)
-    frame = cv2.imdecode(imgnp, cv2.IMREAD_COLOR)
+def procesar_frame(frame):
     frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     clahe = cv2.createCLAHE(clipLimit=3.0, tileGridSize=(8, 8))
     frame_mejorado = clahe.apply(frame_gris)
@@ -114,6 +119,52 @@ async def analizar_imagen(file: UploadFile = File(...)):
             return {"error": "Error calculando métricas", "detalle": str(e)}
     
     return {"Error": "No se detectó rostro"}
+    
+
+@app.websocket("/ws/deteccion")
+async def websocket(websocket: WebSocket):
+    await websocket.accept()
+    logger.info("Cliente conectado al WebSocket")
+
+    try:
+        while True:
+            # Recibir datos como JSON
+            data = await websocket.receive_json()
+            
+            # Aquí asumo que 'data' es un objeto JSON que contiene la imagen en base64 o en otro formato que debes decodificar.
+            # Si la imagen está en base64, necesitarás decodificarla.
+            if "imagen" not in data:
+                await websocket.send_json({"error": "No se encontró la clave 'imagen'"})
+                continue
+
+            imagen_base64 = data["imagen"]
+            # Decodificar la imagen base64 (si es el caso)
+            try:
+                img_data = base64.b64decode(imagen_base64)
+                npimg = np.frombuffer(img_data, np.uint8)
+                frame = cv2.imdecode(npimg, cv2.IMREAD_COLOR)
+            except Exception as e:
+                await websocket.send_json({"error": f"Error al decodificar la imagen: {e}"})
+                continue
+
+            if frame is None:
+                await websocket.send_json({"error": "Imagen inválida"})
+                continue
+
+            # Procesar la imagen
+            resultados = procesar_frame(frame)
+
+            # Enviar resultados al cliente
+            await websocket.send_json(resultados)
+
+    except Exception as e:
+        logger.error(f"WebSocket desconectado: {e}")
+    finally:
+        # Asegúrate de que se cierre solo una vez
+        try:
+            await websocket.close()
+        except RuntimeError:
+            logger.info("El WebSocket ya se había cerrado.")
 
 
 
