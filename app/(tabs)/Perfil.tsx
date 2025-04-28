@@ -72,7 +72,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={require('../../assets/images/Lluvia.JPG')}
+                source={require('../../assets/images/Lluvia.png')}
                 style={styles.toneIcon}
               />
             </View>
@@ -84,7 +84,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={require('../../assets/images/Musica.JPG')}
+                source={require('../../assets/images/Musica.png')}
                 style={styles.toneIcon}
               />
             </View>
@@ -96,7 +96,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={require('../../assets/images/Pajaro.JPG')}
+                source={require('../../assets/images/Pajaro.png')}
                 style={styles.toneIcon}
               />
             </View>
@@ -108,7 +108,7 @@ export default function Configuracion() {
           >
             <View style={styles.iconContainer}>
               <Image
-                source={require('../../assets/images/Personalizado.JPG')}
+                source={require('../../assets/images/Personalizado.png')}
                 style={styles.toneIcon}
               />
             </View>
