@@ -6,7 +6,7 @@ import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-nat
 import {useIsFocused} from '@react-navigation/native';
 
 
-const Linkapi = "ws://192.168.1.72:8000/ws/deteccion"; 
+const Linkapi = "wss://centinela.onrender.com/ws/deteccion"; 
 
 export default function Deteccion() {
   const cameraRef = useRef<CameraView>(null);
