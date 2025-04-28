@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Centinela",
-    "slug": "Centinela",
+    "slug": "centins",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -43,8 +43,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "4c3887f8-0002-420a-9692-967af3e2de16"
+        "projectId": "318fa8e5-7994-4a23-a5d0-5ec7e9ba5879"
       }
-    }
+    },
+    "owner": "centinelas"
   }
 }
