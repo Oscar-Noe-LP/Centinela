@@ -8,7 +8,7 @@ export default function Home() {
     <SafeAreaView style={styles.container}>
       <Text>Bienvenido a Centinela, comencemos con la detección</Text>
       <Image
-        source={{ uri: 'https://raw.githubusercontent.com/Oscar-Noe-LP/Centinela/Frontend/assets/images/centinela.JPG' }}
+        source={require('../../assets/images/centinela.png')}
         style={styles.headerImg}
         alt="Logo"
         resizeMode="contain"
