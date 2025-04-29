@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet,} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import {View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image,} from 'react-native';
 
 interface Alerta {
   id: string;
@@ -112,21 +111,10 @@ export default function ModuloPadres() {
         <Text style={estilos.textoBoton}>Asociar hijo</Text>
       </TouchableOpacity>
 
-      <MapView
+      <Image
+        source={require("../../assets/images/mapa.png")} 
         style={estilos.mapa}
-        initialRegion={{
-          latitude: 19.4326,
-          longitude: -99.1332,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
-        <Marker
-          coordinate={{ latitude: 19.4326, longitude: -99.1332 }}
-          title="Ubicación"
-          description="Última ubicación registrada"
-        />
-      </MapView>
+      />
 
       {/* Modal para agregar hijo */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
@@ -231,6 +219,7 @@ const estilos = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 8,
+    marginTop: 16,
   },
   modalFondo: {
     flex: 1,
