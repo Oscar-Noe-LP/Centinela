@@ -1,11 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView } from 'react-native';
 
+interface Contact {
+  id: string;
+  name: string;
+  phone: string;
+}
+
 export default function Configuracion() {
   const [showVisualAlerts, setShowVisualAlerts] = useState(true);
   const [selectedTone, setSelectedTone] = useState('Lluvia');
   const [selectedTheme, setSelectedTheme] = useState('Claro');
-  const [contacts, setContacts] = useState([
+  const [contacts, setContacts] = useState<Contact[]>([
     { id: '1', name: 'René Lara', phone: '' },
   ]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -26,7 +32,7 @@ export default function Configuracion() {
     }
   };
 
-  const handleRemoveContact = (id) => {
+  const handleRemoveContact = (id: string) => {
     setContacts(contacts.filter((contact) => contact.id !== id));
   };
 
