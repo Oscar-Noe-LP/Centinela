@@ -31,10 +31,10 @@ export default function RootLayout() {
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="index" options={{title: 'Centinela'}}/>
-        <Stack.Screen name="Login/Login" options={{title: 'Inicio de sesión'}}/>
-        <Stack.Screen name="Login/Registro" options={{title: 'Registro de usuario'}}/>
-        <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-        <Stack.Screen name="+not-found" />
+    {/* <Stack.Screen name="Login/Login" options={{title: 'Inicio de sesión'}}/> */}
+    {/* <Stack.Screen name="Login/Registro" options={{title: 'Registro de usuario'}}/> */}
+    {/* <Stack.Screen name="(tabs)" options={{headerShown: false}}/> */}
+    {/* <Stack.Screen name="+not-found" /> */}
       </Stack>
       <StatusBar style="auto" />
     </ThemeProvider>
