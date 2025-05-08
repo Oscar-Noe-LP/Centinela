@@ -41,46 +41,47 @@ export default function Configuracion() {
   // Estilos dinámicos para el modo oscuro
   const containerStyle = selectedTheme === 'Claro' ? styles.containerLight : styles.containerDark;
   const textStyle = selectedTheme === 'Claro' ? styles.textLight : styles.textDark;
-  const inputStyle = selectedTheme === 'Claro' ? styles.inputLight : styles.inputDark;
+  const labelStyle = selectedTheme === 'Claro' ? styles.labelLight : styles.labelDark;
   const toggleOptionsStyle = selectedTheme === 'Claro' ? styles.toggleOptionsLight : styles.toggleOptionsDark;
   const toneOptionsStyle = selectedTheme === 'Claro' ? styles.toneOptionsLight : styles.toneOptionsDark;
   const themeButtonStyle = selectedTheme === 'Claro' ? styles.themeButtonLight : styles.themeButtonDark;
   const contactStyle = selectedTheme === 'Claro' ? styles.contactLight : styles.contactDark;
   const modalContainerStyle = selectedTheme === 'Claro' ? styles.modalContainerLight : styles.modalContainerDark;
+  const modalInputStyle = selectedTheme === 'Claro' ? styles.modalInputLight : styles.modalInputDark;
 
   return (
-    <View style={containerStyle}>
+    <ScrollView style={containerStyle}>
       <Text style={[styles.title, textStyle]}>Perfil y Configuración</Text>
 
-      {/* Campos de entrada con etiquetas arriba */}
+      {/* Campos de etiquetas para datos del usuario */}
       <View style={styles.inputContainer}>
         <Text style={[styles.inputLabel, textStyle]}>Nombre:</Text>
-        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu nombre" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} />
+        <Text style={[styles.input, textStyle]}>No disponible</Text>
       </View>
       <View style={styles.inputContainer}>
         <Text style={[styles.inputLabel, textStyle]}>Correo:</Text>
-        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu correo" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} keyboardType="email-address" />
+        <Text style={[styles.input, textStyle]}>No disponible</Text>
       </View>
       <View style={styles.inputContainer}>
         <Text style={[styles.inputLabel, textStyle]}>Tipo de usuario:</Text>
-        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu tipo de usuario" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} />
+        <Text style={[styles.input, textStyle]}>No disponible</Text>
       </View>
 
       <View style={styles.toggleContainer}>
-        <Text style={[styles.label, textStyle]}>Mostrar alertas visuales</Text>
+        <Text style={[styles.label, labelStyle]}>Mostrar alertas visuales</Text>
         <View style={[styles.toggleOptions, toggleOptionsStyle]}>
           <Text style={[styles.toggleText, textStyle]}>{showVisualAlerts ? 'Sí' : 'No'}</Text>
           <Switch
             value={showVisualAlerts}
             onValueChange={setShowVisualAlerts}
-            trackColor={{ false: '#E0E0E0', true: '#00A19D' }}
+            trackColor={{ false: '#E0E0E0', true: '#1ba098' }}
             thumbColor={showVisualAlerts ? '#FFF' : '#FFF'}
           />
         </View>
       </View>
 
       <View style={styles.toneContainer}>
-        <Text style={[styles.label, textStyle]}>Tono preferido</Text>
+        <Text style={[styles.label, labelStyle]}>Tono preferido</Text>
         <View style={[styles.toneOptions, toneOptionsStyle]}>
           <TouchableOpacity
             style={[styles.toneButton, selectedTone === 'Lluvia' && styles.toneButtonSelected]}
@@ -134,7 +135,7 @@ export default function Configuracion() {
       </View>
 
       <View style={styles.themeContainer}>
-        <Text style={[styles.label, textStyle]}>Tema:</Text>
+        <Text style={[styles.label, labelStyle]}>Tema:</Text>
         <View style={styles.themeOptions}>
           <TouchableOpacity
             style={[styles.themeButton, themeButtonStyle, selectedTheme === 'Claro' && styles.themeButtonSelectedClaro]}
@@ -152,7 +153,7 @@ export default function Configuracion() {
       </View>
 
       <View style={styles.emergencyContainer}>
-        <Text style={[styles.label, textStyle]}>Contactos de emergencia</Text>
+        <Text style={[styles.label, labelStyle]}>Contactos de confianza</Text>
         <View style={styles.contactsWrapper}>
           <ScrollView style={styles.contactsList}>
             {contacts.map((contact) => (
@@ -184,11 +185,11 @@ export default function Configuracion() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContainer, modalContainerStyle]}>
-            <Text style={[styles.modalTitle, textStyle]}>Añadir contacto de emergencia</Text>
+            <Text style={[styles.modalTitle, textStyle]}>Añadir contacto de confianza</Text>
             <View style={styles.modalInputContainer}>
               <Text style={[styles.modalLabel, textStyle]}>Nombre:</Text>
               <TextInput
-                style={[styles.modalInput, inputStyle]}
+                style={[styles.modalInput, modalInputStyle]}
                 value={newContactName}
                 onChangeText={setNewContactName}
                 placeholder="Ingresa el nombre"
@@ -198,7 +199,7 @@ export default function Configuracion() {
             <View style={styles.modalInputContainer}>
               <Text style={[styles.modalLabel, textStyle]}>Teléfono:</Text>
               <TextInput
-                style={[styles.modalInput, inputStyle]}
+                style={[styles.modalInput, modalInputStyle]}
                 value={newContactPhone}
                 onChangeText={setNewContactPhone}
                 placeholder="Ingresa el número"
@@ -224,7 +225,7 @@ export default function Configuracion() {
           </View>
         </View>
       </Modal>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -247,10 +248,22 @@ const styles = StyleSheet.create({
   textDark: {
     color: '#FFF',
   },
+  labelLight: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  labelDark: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FFF',
+    marginBottom: 8,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#00A19D',
+    color: '#1ba098',
     marginBottom: 20,
   },
   inputContainer: {
@@ -260,25 +273,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginBottom: 5,
   },
-  inputLight: {
+  input: {
     flex: 1,
-    backgroundColor: 'white',
+    backgroundColor: 'transparent',
     borderRadius: 6,
     paddingVertical: 14,
     paddingHorizontal: 14,
     fontSize: 18,
-    color: '#333',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  inputDark: {
-    flex: 1,
-    backgroundColor: '#555',
-    borderRadius: 6,
-    paddingVertical: 14,
-    paddingHorizontal: 14,
-    fontSize: 18,
-    color: '#FFF',
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
@@ -303,28 +304,23 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#555',
   },
   toggleText: {
     fontSize: 14,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 8,
   },
   toneContainer: {
     marginBottom: 15,
   },
   toneOptionsLight: {
     flexDirection: 'row',
-    backgroundColor: '#00A19D',
+    backgroundColor: '#1ba098',
     borderRadius: 6,
     padding: 10,
   },
   toneOptionsDark: {
     flexDirection: 'row',
-    backgroundColor: '#00A19D',
+    backgroundColor: '#1ba098',
     borderRadius: 6,
     padding: 10,
   },
@@ -380,7 +376,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#555',
   },
   themeButtonSelectedClaro: {
     backgroundColor: '#FFF',
@@ -423,7 +419,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: '#555',
   },
   contactText: {
     fontSize: 14,
@@ -441,7 +437,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   addButton: {
-    backgroundColor: '#00A19D',
+    backgroundColor: '#1ba098',
     borderRadius: 6,
     paddingVertical: 10,
     alignItems: 'center',
@@ -476,7 +472,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#00A19D',
+    color: '#1ba098',
     marginBottom: 20,
     textAlign: 'center',
   },
@@ -490,7 +486,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     width: 80,
   },
-  modalInput: {
+  modalInputLight: {
     flex: 1,
     backgroundColor: 'white',
     borderRadius: 6,
@@ -501,13 +497,24 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  modalInputDark: {
+    flex: 1,
+    backgroundColor: '#666',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    fontSize: 14,
+    color: '#FFF',
+    borderWidth: 1,
+    borderColor: '#555',
+  },
   modalButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
   },
   modalButton: {
-    backgroundColor: '#00A19D',
+    backgroundColor: '#1ba098',
     borderRadius: 6,
     paddingVertical: 10,
     paddingHorizontal: 20,
