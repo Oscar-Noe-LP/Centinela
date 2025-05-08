@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView } from 'react-native';
+import {SafeAreaView, View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView } from 'react-native';
 
 interface Contact {
   id: string;
@@ -50,186 +50,191 @@ export default function Configuracion() {
   const modalInputStyle = selectedTheme === 'Claro' ? styles.modalInputLight : styles.modalInputDark;
 
   return (
-    <ScrollView style={containerStyle}>
-      <Text style={[styles.title, textStyle]}>Perfil y Configuración</Text>
+    <SafeAreaView style={styles.contenedor}>
+      <ScrollView style={containerStyle}>
+        <Text style={[styles.title, textStyle]}>Perfil y Configuración</Text>
 
-      {/* Campos de etiquetas para datos del usuario */}
-      <View style={styles.inputContainer}>
-        <Text style={[styles.inputLabel, textStyle]}>Nombre:</Text>
-        <Text style={[styles.input, textStyle]}>No disponible</Text>
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={[styles.inputLabel, textStyle]}>Correo:</Text>
-        <Text style={[styles.input, textStyle]}>No disponible</Text>
-      </View>
-      <View style={styles.inputContainer}>
-        <Text style={[styles.inputLabel, textStyle]}>Tipo de usuario:</Text>
-        <Text style={[styles.input, textStyle]}>No disponible</Text>
-      </View>
-
-      <View style={styles.toggleContainer}>
-        <Text style={[styles.label, labelStyle]}>Mostrar alertas visuales</Text>
-        <View style={[styles.toggleOptions, toggleOptionsStyle]}>
-          <Text style={[styles.toggleText, textStyle]}>{showVisualAlerts ? 'Sí' : 'No'}</Text>
-          <Switch
-            value={showVisualAlerts}
-            onValueChange={setShowVisualAlerts}
-            trackColor={{ false: '#E0E0E0', true: '#1ba098' }}
-            thumbColor={showVisualAlerts ? '#FFF' : '#FFF'}
-          />
+        {/* Campos de etiquetas para datos del usuario */}
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, textStyle]}>Nombre:</Text>
+          <Text style={[styles.input, textStyle]}>Arturo Barajas</Text>
         </View>
-      </View>
-
-      <View style={styles.toneContainer}>
-        <Text style={[styles.label, labelStyle]}>Tono preferido</Text>
-        <View style={[styles.toneOptions, toneOptionsStyle]}>
-          <TouchableOpacity
-            style={[styles.toneButton, selectedTone === 'Lluvia' && styles.toneButtonSelected]}
-            onPress={() => setSelectedTone('Lluvia')}
-          >
-            <View style={styles.iconContainer}>
-              <Image
-                source={require('../../assets/images/Lluvia.png')}
-                style={styles.toneIcon}
-              />
-            </View>
-            <Text style={styles.toneText}>LLUVIA</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toneButton, selectedTone === 'Música' && styles.toneButtonSelected]}
-            onPress={() => setSelectedTone('Música')}
-          >
-            <View style={styles.iconContainer}>
-              <Image
-                source={require('../../assets/images/Musica.png')}
-                style={styles.toneIcon}
-              />
-            </View>
-            <Text style={styles.toneText}>MÚSICA</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toneButton, selectedTone === 'Pájaros' && styles.toneButtonSelected]}
-            onPress={() => setSelectedTone('Pájaros')}
-          >
-            <View style={styles.iconContainer}>
-              <Image
-                source={require('../../assets/images/Pajaro.png')}
-                style={styles.toneIcon}
-              />
-            </View>
-            <Text style={styles.toneText}>PÁJAROS</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.toneButton, selectedTone === 'Personalizado' && styles.toneButtonSelected]}
-            onPress={() => setSelectedTone('Personalizado')}
-          >
-            <View style={styles.iconContainer}>
-              <Image
-                source={require('../../assets/images/Personalizado.png')}
-                style={styles.toneIcon}
-              />
-            </View>
-            <Text style={styles.toneText}>PERSONALIZADO</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, textStyle]}>Correo:</Text>
+          <Text style={[styles.input, textStyle]}>urodz@gmail.com</Text>
         </View>
-      </View>
-
-      <View style={styles.themeContainer}>
-        <Text style={[styles.label, labelStyle]}>Tema:</Text>
-        <View style={styles.themeOptions}>
-          <TouchableOpacity
-            style={[styles.themeButton, themeButtonStyle, selectedTheme === 'Claro' && styles.themeButtonSelectedClaro]}
-            onPress={() => setSelectedTheme('Claro')}
-          >
-            <Text style={[styles.themeText, textStyle]}>Claro</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.themeButton, themeButtonStyle, selectedTheme === 'Oscuro' && styles.themeButtonSelectedOscuro]}
-            onPress={() => setSelectedTheme('Oscuro')}
-          >
-            <Text style={[styles.themeText, textStyle]}>Oscuro</Text>
-          </TouchableOpacity>
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, textStyle]}>Tipo de usuario:</Text>
+          <Text style={[styles.input, textStyle]}>Padre</Text>
         </View>
-      </View>
 
-      <View style={styles.emergencyContainer}>
-        <Text style={[styles.label, labelStyle]}>Contactos de confianza</Text>
-        <View style={styles.contactsWrapper}>
-          <ScrollView style={styles.contactsList}>
-            {contacts.map((contact) => (
-              <View key={contact.id} style={[styles.contact, contactStyle]}>
-                <View>
-                  <Text style={[styles.contactText, textStyle]}>{contact.name}</Text>
-                  {contact.phone ? <Text style={[styles.contactPhone, textStyle]}>{contact.phone}</Text> : null}
-                </View>
-                <TouchableOpacity
-                  style={styles.removeButton}
-                  onPress={() => handleRemoveContact(contact.id)}
-                >
-                  <Text style={[styles.removeButtonText, textStyle]}>Eliminar</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
-          </ScrollView>
-          <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-            <Text style={styles.addButtonText}>Añadir contacto</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={modalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContainer, modalContainerStyle]}>
-            <Text style={[styles.modalTitle, textStyle]}>Añadir contacto de confianza</Text>
-            <View style={styles.modalInputContainer}>
-              <Text style={[styles.modalLabel, textStyle]}>Nombre:</Text>
-              <TextInput
-                style={[styles.modalInput, modalInputStyle]}
-                value={newContactName}
-                onChangeText={setNewContactName}
-                placeholder="Ingresa el nombre"
-                placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
-              />
-            </View>
-            <View style={styles.modalInputContainer}>
-              <Text style={[styles.modalLabel, textStyle]}>Teléfono:</Text>
-              <TextInput
-                style={[styles.modalInput, modalInputStyle]}
-                value={newContactPhone}
-                onChangeText={setNewContactPhone}
-                placeholder="Ingresa el número"
-                placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
-                keyboardType="phone-pad"
-              />
-            </View>
-            <View style={styles.modalButtonContainer}>
-              <TouchableOpacity
-                style={styles.modalButton}
-                onPress={() => {
-                  setNewContactName('');
-                  setNewContactPhone('');
-                  setModalVisible(false);
-                }}
-              >
-                <Text style={styles.modalButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton} onPress={handleAddContact}>
-                <Text style={styles.modalButtonText}>Guardar</Text>
-              </TouchableOpacity>
-            </View>
+        <View style={styles.toggleContainer}>
+          <Text style={labelStyle}>Mostrar alertas visuales</Text>
+          <View style={toggleOptionsStyle}>
+            <Text style={[styles.toggleText, textStyle]}>{showVisualAlerts ? 'Sí' : 'No'}</Text>
+            <Switch
+              value={showVisualAlerts}
+              onValueChange={setShowVisualAlerts}
+              trackColor={{ false: '#E0E0E0', true: '#1ba098' }}
+              thumbColor={showVisualAlerts ? '#FFF' : '#FFF'}
+            />
           </View>
         </View>
-      </Modal>
-    </ScrollView>
+
+        <View style={styles.toneContainer}>
+          <Text style={labelStyle}>Tono preferido</Text>
+          <View style={toneOptionsStyle}>
+            <TouchableOpacity
+              style={[styles.toneButton, selectedTone === 'Lluvia' && styles.toneButtonSelected]}
+              onPress={() => setSelectedTone('Lluvia')}
+            >
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../assets/images/Lluvia.png')}
+                  style={styles.toneIcon}
+                />
+              </View>
+              <Text style={styles.toneText}>LLUVIA</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toneButton, selectedTone === 'Música' && styles.toneButtonSelected]}
+              onPress={() => setSelectedTone('Música')}
+            >
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../assets/images/Musica.png')}
+                  style={styles.toneIcon}
+                />
+              </View>
+              <Text style={styles.toneText}>MÚSICA</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toneButton, selectedTone === 'Pájaros' && styles.toneButtonSelected]}
+              onPress={() => setSelectedTone('Pájaros')}
+            >
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../assets/images/Pajaro.png')}
+                  style={styles.toneIcon}
+                />
+              </View>
+              <Text style={styles.toneText}>PÁJAROS</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.toneButton, selectedTone === 'Personalizado' && styles.toneButtonSelected]}
+              onPress={() => setSelectedTone('Personalizado')}
+            >
+              <View style={styles.iconContainer}>
+                <Image
+                  source={require('../../assets/images/Personalizado.png')}
+                  style={styles.toneIcon}
+                />
+              </View>
+              <Text style={styles.toneText}>PERSONALIZADO</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.themeContainer}>
+          <Text style={labelStyle}>Tema:</Text>
+          <View style={styles.themeOptions}>
+            <TouchableOpacity
+              style={[themeButtonStyle, selectedTheme === 'Claro' && styles.themeButtonSelectedClaro]}
+              onPress={() => setSelectedTheme('Claro')}
+            >
+              <Text style={[styles.themeText, textStyle]}>Claro</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[themeButtonStyle, selectedTheme === 'Oscuro' && styles.themeButtonSelectedOscuro]}
+              onPress={() => setSelectedTheme('Oscuro')}
+            >
+              <Text style={[styles.themeText, textStyle]}>Oscuro</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.emergencyContainer}>
+          <Text style={labelStyle}>Contactos de confianza</Text>
+          <View style={styles.contactsWrapper}>
+            <ScrollView style={styles.contactsList}>
+              {contacts.map((contact) => (
+                <View key={contact.id} style={contactStyle}>
+                  <View>
+                    <Text style={[styles.contactText, textStyle]}>{contact.name}</Text>
+                    {contact.phone ? <Text style={[styles.contactPhone, textStyle]}>{contact.phone}</Text> : null}
+                  </View>
+                  <TouchableOpacity
+                    style={styles.removeButton}
+                    onPress={() => handleRemoveContact(contact.id)}
+                  >
+                    <Text style={[styles.removeButtonText, textStyle]}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+            </ScrollView>
+            <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+              <Text style={styles.addButtonText}>Añadir contacto</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={modalVisible}
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={modalContainerStyle}>
+              <Text style={[styles.modalTitle, textStyle]}>Añadir contacto de confianza</Text>
+              <View style={styles.modalInputContainer}>
+                <Text style={[styles.modalLabel, textStyle]}>Nombre:</Text>
+                <TextInput
+                  style={modalInputStyle}
+                  value={newContactName}
+                  onChangeText={setNewContactName}
+                  placeholder="Ingresa el nombre"
+                  placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
+                />
+              </View>
+              <View style={styles.modalInputContainer}>
+                <Text style={[styles.modalLabel, textStyle]}>Teléfono:</Text>
+                <TextInput
+                  style={modalInputStyle}
+                  value={newContactPhone}
+                  onChangeText={setNewContactPhone}
+                  placeholder="Ingresa el número"
+                  placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
+                  keyboardType="phone-pad"
+                />
+              </View>
+              <View style={styles.modalButtonContainer}>
+                <TouchableOpacity
+                  style={styles.modalButton}
+                  onPress={() => {
+                    setNewContactName('');
+                    setNewContactPhone('');
+                    setModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={handleAddContact}>
+                  <Text style={styles.modalButtonText}>Guardar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  contenedor: {
+    flex: 1,
+  },
   containerLight: {
     flex: 1,
     backgroundColor: '#F5F5F5',
@@ -261,10 +266,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#1ba098',
     marginBottom: 20,
+    marginTop: 20
   },
   inputContainer: {
     marginBottom: 10,
