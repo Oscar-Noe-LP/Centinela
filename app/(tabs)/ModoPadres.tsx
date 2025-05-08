@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image,} from 'react-native';
+import {SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image,} from 'react-native';
 
 interface Alerta {
   id: string;
@@ -57,65 +57,68 @@ export default function ModuloPadres() {
   };
 
   return (
-    <View style={estilos.contenedor}>
-      <Text style={estilos.tituloPrincipal}>Módulo para padres</Text>
+    <SafeAreaView style={estilos.contenedor}>
+      <FlatList
+        data={listaAlertas}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={
+          <>
+          <Text style={estilos.tituloPrincipal}>Módulo para padres</Text>
 
-      <Text style={estilos.tituloSecundario}>Alertas recibidas</Text>
+          <Text style={estilos.tituloSecundario}>Alertas recibidas</Text>
 
-      <View style={estilos.tabla}>
-        <View style={estilos.filaEncabezado}>
-          <Text style={estilos.celdaEncabezado}>Fecha y hora</Text>
-          <Text style={estilos.celdaEncabezado}>Ubicación</Text>
-          <Text style={estilos.celdaEncabezado}>Detalles</Text>
-          <Text style={estilos.celdaEncabezado}>Usuario</Text>
-        </View>
-        <FlatList
-          data={listaAlertas}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+          <View style={estilos.tabla}>
+            <View style={estilos.filaEncabezado}>
+              <Text style={estilos.celdaEncabezado}>Fecha y hora</Text>
+              <Text style={estilos.celdaEncabezado}>Ubicación</Text>
+              <Text style={estilos.celdaEncabezado}>Detalles</Text>
+              <Text style={estilos.celdaEncabezado}>Usuario</Text>
+            </View>
+          </View>
+          </>
+        }
+        renderItem={({ item }) => (
             <View style={estilos.fila}>
               <Text style={estilos.celda}>{item.fechaHora}</Text>
               <Text style={estilos.celda}>{item.ubicacion}</Text>
               <Text style={estilos.celda}>{item.detalle}</Text>
               <Text style={estilos.celda}>{item.usuario}</Text>
             </View>
-          )}
-        />
-      </View>
-
-      <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
-      {listaHijos.map((hijo) => (
-      <View key={hijo.id} style={estilos.hijoContenedor}>
-        <View style={estilos.hijoFila}>
-          <Text style={estilos.hijoNombre}>{hijo.nombre}</Text>
-          <View style={estilos.botonesHijo}>
-            <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(hijo)}>
-              <Text style={estilos.textoBoton}>Historial</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={estilos.botonAccion} onPress={() => verMapa(hijo)}>
-              <Text style={estilos.textoBoton}>Mapa</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(hijo.id)}>
-              <Text style={estilos.textoBoton}>Eliminar</Text>
-            </TouchableOpacity>
+        )}
+        ListFooterComponent={
+          <> 
+          <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
+          {listaHijos.map((hijo) => (
+          <View key={hijo.id} style={estilos.hijoContenedor}>
+            <View style={estilos.hijoFila}>
+              <Text style={estilos.hijoNombre}>{hijo.nombre}</Text>
+              <View style={estilos.botonesHijo}>
+                <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(hijo)}>
+                  <Text style={estilos.textoBoton}>Ver Historial</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(hijo.id)}>
+                  <Text style={estilos.textoBoton}>Eliminar</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
           </View>
-        </View>
-        <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
-      </View>
-    ))}
+        ))}
 
-      <TouchableOpacity
-        style={estilos.botonAsociar}
-        onPress={() => setModalVisible(true)}
-      >
-        <Text style={estilos.textoBoton}>Asociar hijo</Text>
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={estilos.botonAsociar}
+            onPress={() => setModalVisible(true)}
+          >
+            <Text style={estilos.textoBoton}>Asociar hijo</Text>
+          </TouchableOpacity>
 
-      <Image
-        source={require("../../assets/images/mapa.png")} 
-        style={estilos.mapa}
+          <Image
+            source={require("../../assets/images/mapa.png")} 
+            style={estilos.mapa}
+          />
+          </>
+        }
       />
-
       {/* Modal para agregar hijo */}
       <Modal visible={modalVisible} animationType="slide" transparent={true}>
         <View style={estilos.modalFondo}>
@@ -146,7 +149,7 @@ export default function ModuloPadres() {
           </View>
         </View>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -157,7 +160,7 @@ const estilos = StyleSheet.create({
     backgroundColor: '#fff',
   },
   tituloPrincipal: {
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: 'bold',
     marginBottom: 16,
     marginTop: 20,
@@ -170,16 +173,16 @@ const estilos = StyleSheet.create({
   },
   tabla: {
     borderWidth: 1,
-    borderColor: '#000',
+    borderColor: '#1ba098',
   },
   filaEncabezado: {
     flexDirection: 'row',
-    backgroundColor: '#1DE9B6',
+    backgroundColor: '#1ba098',
   },
   fila: {
     flexDirection: 'row',
     borderTopWidth: 1,
-    borderColor: '#ccc',
+    borderColor: '#1ba098',
   },
   celdaEncabezado: {
     flex: 1,
@@ -196,7 +199,7 @@ const estilos = StyleSheet.create({
     marginBottom: 10,
   },
   botonAccion: {
-    backgroundColor: '#00BFA5',
+    backgroundColor: '#1ba098',
     height: '100%',
     padding: 8,
     borderRadius: 6,
@@ -205,7 +208,7 @@ const estilos = StyleSheet.create({
     marginHorizontal: 2,
   },
   botonAsociar: {
-    backgroundColor: '#00BFA5',
+    backgroundColor: '#1ba098',
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -272,13 +275,13 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
-    gap: 10, // separa los botones
+    gap: 10, 
   },
   
   botonModal: {
-    flex: 1, // hace que ambos botones midan lo mismo
+    flex: 1, 
     paddingVertical: 10,
-    backgroundColor: '#007bff',
+    backgroundColor: '#1ba098',
     borderRadius: 8,
     alignItems: 'center',
   },

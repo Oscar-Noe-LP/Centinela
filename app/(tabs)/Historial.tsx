@@ -1,77 +1,79 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import {SafeAreaView, View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
 
 export default function Historial() {
     return (
-        <ScrollView style={styles.container}>
+        <SafeAreaView style={styles.container}>
+            <ScrollView>
 
-            <Text style={styles.titulo}>Historial de alertas</Text>
+                <Text style={styles.titulo}>Historial de alertas</Text>
 
-            <View style={styles.tabla}>
-             
-                <View style={styles.filaEncabezado}>
-                    <Text style={styles.celdaEncabezado}>Fecha/hora</Text>
-                    <Text style={styles.celdaEncabezado}>Ubicación</Text>
-                    <Text style={styles.celdaEncabezado}>Detalles de alerta</Text>
+                <View style={styles.tabla}>
+                
+                    <View style={styles.filaEncabezado}>
+                        <Text style={styles.celdaEncabezado}>Fecha/hora</Text>
+                        <Text style={styles.celdaEncabezado}>Ubicación</Text>
+                        <Text style={styles.celdaEncabezado}>Detalles de alerta</Text>
+                    </View>
+            
+                    <View style={styles.fila}>
+                        <Text style={styles.celda}>23/04/2025</Text>
+                        <Text style={styles.celda}>lat</Text>
+                        <Text style={styles.celda}>Bostezo</Text>
+                    </View>
+                    <View style={styles.fila}>
+                        <Text style={styles.celda}>23/04/2025</Text>
+                        <Text style={styles.celda}>lat</Text>
+                        <Text style={styles.celda}>Fatiga visual</Text>
+                    </View>
+                    <View style={styles.fila}>
+                        <Text style={styles.celda}>23/04/2025</Text>
+                        <Text style={styles.celda}>lat</Text>
+                        <Text style={styles.celda}>Fatiga visual</Text>
+                    </View>
                 </View>
-           
-                <View style={styles.fila}>
-                    <Text style={styles.celda}>23/04/2025</Text>
-                    <Text style={styles.celda}>lat</Text>
-                    <Text style={styles.celda}>Bostezo</Text>
+                <View style={styles.habitosContainer}>
+                    <Text style={styles.subtitulo}>Tus hábitos de manejo</Text>
+                    <View style={styles.habitos}>
+                        <TextInput
+                            style={styles.habitoInput}
+                            value="Sesión: 23/04/2025 10:30 AM"
+                            editable={false}
+                        />
+                        <TextInput
+                            style={styles.habitoInput}
+                            value="Duración: 45 minutos"
+                            editable={false}
+                        />
+                        <TextInput
+                            style={styles.habitoInput}
+                            value="Total de alertas: 3"
+                            editable={false}
+                        />
+                        <TextInput
+                            style={styles.habitoInput}
+                            value="Última sesión: 22/04/2025"
+                            editable={false}
+                        />
+                    </View>
                 </View>
-                <View style={styles.fila}>
-                    <Text style={styles.celda}>23/04/2025</Text>
-                    <Text style={styles.celda}>lat</Text>
-                    <Text style={styles.celda}>Fatiga visual</Text>
-                </View>
-                <View style={styles.fila}>
-                    <Text style={styles.celda}>23/04/2025</Text>
-                    <Text style={styles.celda}>lat</Text>
-                    <Text style={styles.celda}>Fatiga visual</Text>
-                </View>
-            </View>
-            <View style={styles.habitosContainer}>
-                <Text style={styles.subtitulo}>Tus hábitos de manejo</Text>
-                <View style={styles.habitos}>
-                    <TextInput
-                        style={styles.habitoInput}
-                        value="Sesión: 23/04/2025 10:30 AM"
-                        editable={false}
-                    />
-                    <TextInput
-                        style={styles.habitoInput}
-                        value="Duración: 45 minutos"
-                        editable={false}
-                    />
-                    <TextInput
-                        style={styles.habitoInput}
-                        value="Total de alertas: 3"
-                        editable={false}
-                    />
-                    <TextInput
-                        style={styles.habitoInput}
-                        value="Última sesión: 22/04/2025"
-                        editable={false}
-                    />
-                </View>
-            </View>
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#F5F5F5',
-        padding: 20,
-        paddingTop: 20,
+        backgroundColor: '#fff',
+        padding: 16,
     },
     titulo: {
-        fontSize: 24,
+        fontSize: 30,
         fontWeight: 'bold',
-        color: '#00A19D',
+        color: '#000',
         marginBottom: 20,
+        marginTop: 20
     },
     tabla: {
         backgroundColor: 'white',
@@ -105,12 +107,12 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         paddingHorizontal: 10,
         borderBottomWidth: 1,
-        borderBottomColor: '#E0E0E0',
+        borderBottomColor: '#1ba098',
         backgroundColor: 'white',
     },
     celda: {
         flex: 1,
-        color: '#333',
+        color: '#000',
         textAlign: 'center',
         fontSize: 12,
     },
@@ -145,6 +147,6 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#333',
         borderWidth: 1,
-        borderColor: '#E0E0E0',
+        borderColor: '#000',
     },
 });
