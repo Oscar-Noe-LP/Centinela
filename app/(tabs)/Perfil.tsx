@@ -38,27 +38,38 @@ export default function Configuracion() {
 
   const cacheBuster = useMemo(() => `?t=${Date.now()}`, []);
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Perfil y Configuración</Text>
+  // Estilos dinámicos para el modo oscuro
+  const containerStyle = selectedTheme === 'Claro' ? styles.containerLight : styles.containerDark;
+  const textStyle = selectedTheme === 'Claro' ? styles.textLight : styles.textDark;
+  const inputStyle = selectedTheme === 'Claro' ? styles.inputLight : styles.inputDark;
+  const toggleOptionsStyle = selectedTheme === 'Claro' ? styles.toggleOptionsLight : styles.toggleOptionsDark;
+  const toneOptionsStyle = selectedTheme === 'Claro' ? styles.toneOptionsLight : styles.toneOptionsDark;
+  const themeButtonStyle = selectedTheme === 'Claro' ? styles.themeButtonLight : styles.themeButtonDark;
+  const contactStyle = selectedTheme === 'Claro' ? styles.contactLight : styles.contactDark;
+  const modalContainerStyle = selectedTheme === 'Claro' ? styles.modalContainerLight : styles.modalContainerDark;
 
+  return (
+    <View style={containerStyle}>
+      <Text style={[styles.title, textStyle]}>Perfil y Configuración</Text>
+
+      {/* Campos de entrada con etiquetas arriba */}
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Nombre:</Text>
-        <TextInput style={styles.input} />
+        <Text style={[styles.inputLabel, textStyle]}>Nombre:</Text>
+        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu nombre" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} />
       </View>
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Correo:</Text>
-        <TextInput style={styles.input} />
+        <Text style={[styles.inputLabel, textStyle]}>Correo:</Text>
+        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu correo" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} keyboardType="email-address" />
       </View>
       <View style={styles.inputContainer}>
-        <Text style={styles.inputLabel}>Tipo de usuario:</Text>
-        <TextInput style={styles.input} />
+        <Text style={[styles.inputLabel, textStyle]}>Tipo de usuario:</Text>
+        <TextInput style={[styles.input, inputStyle]} placeholder="Ingresa tu tipo de usuario" placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'} />
       </View>
 
       <View style={styles.toggleContainer}>
-        <Text style={styles.label}>Mostrar alertas visuales</Text>
-        <View style={styles.toggleOptions}>
-          <Text style={styles.toggleText}>{showVisualAlerts ? 'Sí' : 'No'}</Text>
+        <Text style={[styles.label, textStyle]}>Mostrar alertas visuales</Text>
+        <View style={[styles.toggleOptions, toggleOptionsStyle]}>
+          <Text style={[styles.toggleText, textStyle]}>{showVisualAlerts ? 'Sí' : 'No'}</Text>
           <Switch
             value={showVisualAlerts}
             onValueChange={setShowVisualAlerts}
@@ -68,10 +79,9 @@ export default function Configuracion() {
         </View>
       </View>
 
-
       <View style={styles.toneContainer}>
-        <Text style={styles.label}>Tono preferido</Text>
-        <View style={styles.toneOptions}>
+        <Text style={[styles.label, textStyle]}>Tono preferido</Text>
+        <View style={[styles.toneOptions, toneOptionsStyle]}>
           <TouchableOpacity
             style={[styles.toneButton, selectedTone === 'Lluvia' && styles.toneButtonSelected]}
             onPress={() => setSelectedTone('Lluvia')}
@@ -124,38 +134,38 @@ export default function Configuracion() {
       </View>
 
       <View style={styles.themeContainer}>
-        <Text style={styles.label}>Tema:</Text>
+        <Text style={[styles.label, textStyle]}>Tema:</Text>
         <View style={styles.themeOptions}>
           <TouchableOpacity
-            style={[styles.themeButton, selectedTheme === 'Claro' && styles.themeButtonSelectedClaro]}
+            style={[styles.themeButton, themeButtonStyle, selectedTheme === 'Claro' && styles.themeButtonSelectedClaro]}
             onPress={() => setSelectedTheme('Claro')}
           >
-            <Text style={styles.themeText}>Claro</Text>
+            <Text style={[styles.themeText, textStyle]}>Claro</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.themeButton, selectedTheme === 'Oscuro' && styles.themeButtonSelectedOscuro]}
+            style={[styles.themeButton, themeButtonStyle, selectedTheme === 'Oscuro' && styles.themeButtonSelectedOscuro]}
             onPress={() => setSelectedTheme('Oscuro')}
           >
-            <Text style={styles.themeText}>Oscuro</Text>
+            <Text style={[styles.themeText, textStyle]}>Oscuro</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       <View style={styles.emergencyContainer}>
-        <Text style={styles.label}>Contactos de emergencia</Text>
+        <Text style={[styles.label, textStyle]}>Contactos de emergencia</Text>
         <View style={styles.contactsWrapper}>
           <ScrollView style={styles.contactsList}>
             {contacts.map((contact) => (
-              <View key={contact.id} style={styles.contact}>
+              <View key={contact.id} style={[styles.contact, contactStyle]}>
                 <View>
-                  <Text style={styles.contactText}>{contact.name}</Text>
-                  {contact.phone ? <Text style={styles.contactPhone}>{contact.phone}</Text> : null}
+                  <Text style={[styles.contactText, textStyle]}>{contact.name}</Text>
+                  {contact.phone ? <Text style={[styles.contactPhone, textStyle]}>{contact.phone}</Text> : null}
                 </View>
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => handleRemoveContact(contact.id)}
                 >
-                  <Text style={styles.removeButtonText}>Eliminar</Text>
+                  <Text style={[styles.removeButtonText, textStyle]}>Eliminar</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -173,26 +183,26 @@ export default function Configuracion() {
         onRequestClose={() => setModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Añadir contacto de emergencia</Text>
+          <View style={[styles.modalContainer, modalContainerStyle]}>
+            <Text style={[styles.modalTitle, textStyle]}>Añadir contacto de emergencia</Text>
             <View style={styles.modalInputContainer}>
-              <Text style={styles.modalLabel}>Nombre:</Text>
+              <Text style={[styles.modalLabel, textStyle]}>Nombre:</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, inputStyle]}
                 value={newContactName}
                 onChangeText={setNewContactName}
                 placeholder="Ingresa el nombre"
-                placeholderTextColor="#999"
+                placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
               />
             </View>
             <View style={styles.modalInputContainer}>
-              <Text style={styles.modalLabel}>Teléfono:</Text>
+              <Text style={[styles.modalLabel, textStyle]}>Teléfono:</Text>
               <TextInput
-                style={styles.modalInput}
+                style={[styles.modalInput, inputStyle]}
                 value={newContactPhone}
                 onChangeText={setNewContactPhone}
                 placeholder="Ingresa el número"
-                placeholderTextColor="#999"
+                placeholderTextColor={selectedTheme === 'Claro' ? '#999' : '#ccc'}
                 keyboardType="phone-pad"
               />
             </View>
@@ -219,11 +229,23 @@ export default function Configuracion() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  containerLight: {
     flex: 1,
     backgroundColor: '#F5F5F5',
     padding: 20,
     paddingTop: 20,
+  },
+  containerDark: {
+    flex: 1,
+    backgroundColor: '#333',
+    padding: 20,
+    paddingTop: 20,
+  },
+  textLight: {
+    color: '#333',
+  },
+  textDark: {
+    color: '#FFF',
   },
   title: {
     fontSize: 24,
@@ -232,31 +254,38 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10, 
+    marginBottom: 10,
   },
   inputLabel: {
     fontSize: 14,
-    color: '#333',
-    marginRight: 10,
-    width: 120,
+    marginBottom: 5,
   },
-  input: {
+  inputLight: {
     flex: 1,
     backgroundColor: 'white',
     borderRadius: 6,
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    fontSize: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    fontSize: 18,
     color: '#333',
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  toggleContainer: {
-    marginBottom: 15, 
+  inputDark: {
+    flex: 1,
+    backgroundColor: '#555',
+    borderRadius: 6,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    fontSize: 18,
+    color: '#FFF',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
-  toggleOptions: {
+  toggleContainer: {
+    marginBottom: 15,
+  },
+  toggleOptionsLight: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -266,20 +295,34 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  toggleOptionsDark: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#555',
+    borderRadius: 6,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
   toggleText: {
     fontSize: 14,
-    color: '#333',
   },
   label: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
   },
   toneContainer: {
-    marginBottom: 15, 
+    marginBottom: 15,
   },
-  toneOptions: {
+  toneOptionsLight: {
+    flexDirection: 'row',
+    backgroundColor: '#00A19D',
+    borderRadius: 6,
+    padding: 10,
+  },
+  toneOptionsDark: {
     flexDirection: 'row',
     backgroundColor: '#00A19D',
     borderRadius: 6,
@@ -315,13 +358,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   themeContainer: {
-    marginBottom: 15, 
+    marginBottom: 15,
   },
   themeOptions: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  themeButton: {
+  themeButtonLight: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 10,
+    marginHorizontal: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  themeButtonDark: {
     flex: 1,
     alignItems: 'center',
     paddingVertical: 10,
@@ -338,21 +390,20 @@ const styles = StyleSheet.create({
   },
   themeText: {
     fontSize: 14,
-    color: '#333',
   },
   emergencyContainer: {
     marginBottom: 20,
-    flex: 1, 
+    flex: 1,
   },
   contactsWrapper: {
     flex: 1,
     position: 'relative',
   },
   contactsList: {
-    flexGrow: 1, 
+    flexGrow: 1,
     marginBottom: 60,
   },
-  contact: {
+  contactLight: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -363,13 +414,22 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
+  contactDark: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#555',
+    borderRadius: 6,
+    padding: 10,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
   contactText: {
     fontSize: 14,
-    color: '#333',
   },
   contactPhone: {
     fontSize: 12,
-    color: '#666',
   },
   removeButton: {
     backgroundColor: '#E0E0E0',
@@ -379,7 +439,6 @@ const styles = StyleSheet.create({
   },
   removeButtonText: {
     fontSize: 12,
-    color: '#333',
   },
   addButton: {
     backgroundColor: '#00A19D',
@@ -402,9 +461,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  modalContainer: {
+  modalContainerLight: {
     width: '80%',
     backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 20,
+  },
+  modalContainerDark: {
+    width: '80%',
+    backgroundColor: '#555',
     borderRadius: 8,
     padding: 20,
   },
@@ -422,7 +487,6 @@ const styles = StyleSheet.create({
   },
   modalLabel: {
     fontSize: 14,
-    color: '#333',
     marginRight: 10,
     width: 80,
   },
