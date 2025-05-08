@@ -6,7 +6,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-
+import { MaterialCommunityIcons, FontAwesome, Octicons} from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -29,14 +29,14 @@ export default function TabLayout() {
         name="Perfil"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <Octicons name="person-fill" size={24} color={color}/>,
         }}
       />
       <Tabs.Screen
         name="Calibracion"
         options={{
           title: 'Calibración',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <FontAwesome name="camera" size={24} color={color}/>,
         }}
       />
       <Tabs.Screen
@@ -50,21 +50,21 @@ export default function TabLayout() {
         name="Deteccion"
         options={{
           title: 'Detección',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="face-recognition" size={24} color={color}/>,
         }}
       />
       <Tabs.Screen
         name="Historial"
         options={{
           title: 'Historial',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="file-chart-outline" size={24} color={color}/>,
         }}
       />
       <Tabs.Screen
         name="ModoPadres"
         options={{
           title: 'ModoPadres',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons name="shield-account" size={24} color={color}/>,
         }}
         />
     </Tabs>
