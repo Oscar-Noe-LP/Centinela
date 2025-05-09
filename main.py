@@ -191,7 +191,6 @@ async def agregar_nuevo_usuario(request: Request):
         return {"mensaje": "Usuario creado con éxito"}
     
     except Exception as e:
-        traceback.print_exc()  # 🔥 Esto te da el traceback completo
         raise HTTPException(status_code=500, detail="Error interno en el servidor")
     finally:
         conexion.close()
