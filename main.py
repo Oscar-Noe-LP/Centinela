@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, Request
 import logging
 from fastapi.middleware.gzip import GZipMiddleware
 import cv2
@@ -185,7 +185,14 @@ async def agregar_nuevo_usuario(nombre:str, buzon: str, wlst: str, tipo_usuario:
         raise HTTPException(status_code=400, detail="Error al crear el usuario")
 
 @app.post("/login")
-async def login_usuario(buzon: str, wlst: str):
+async def login_usuario(request: Request):
+    data = await request.json()  
+    buzon = data.get('buzon')
+    wlst = data.get('wlst')
+
+    if not buzon or not wlst:
+        raise HTTPException(status_code=400, detail="Faltan campos")
+
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
