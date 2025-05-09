@@ -171,8 +171,6 @@ async def websocket(websocket: WebSocket):
 async def agregar_nuevo_usuario(request: Request):
     try:
         data = await request.json()
-        print("🟢 Datos recibidos:", data)
-
         nombre = data.get('nombre')
         buzon = data.get('buzon')
         wlst = data.get('wlst')
@@ -193,7 +191,6 @@ async def agregar_nuevo_usuario(request: Request):
         return {"mensaje": "Usuario creado con éxito"}
     
     except Exception as e:
-        print("❌ Error en backend:")
         traceback.print_exc()  # 🔥 Esto te da el traceback completo
         raise HTTPException(status_code=500, detail="Error interno en el servidor")
     finally:
