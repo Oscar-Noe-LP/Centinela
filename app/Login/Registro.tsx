@@ -10,7 +10,7 @@ export default function Registro() {
 
   const handleSignUp = () => {
     console.log('Sign up with:', form.name, form.email, form.password);
-    // aqui va la logica cuando quede x2
+
   };
 
   return (
