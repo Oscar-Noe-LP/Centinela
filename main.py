@@ -169,7 +169,14 @@ async def websocket(websocket: WebSocket):
 
 
 @app.post("/registro")
-async def agregar_nuevo_usuario(nombre:str, buzon: str, wlst: str, tipo_usuario: str, telefono: str):
+async def agregar_nuevo_usuario(request: Request):
+    datos = await request.json()
+    nombre = datos.get('nombre')
+    buzon = datos.get('buzon')
+    wlst = datos.get('wlst')
+    tipo_usuario = datos.get('tipo_usuario')
+    telefono = datos.get('telefono')
+
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
