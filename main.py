@@ -170,12 +170,14 @@ async def websocket(websocket: WebSocket):
 
 @app.post("/registro")
 async def agregar_nuevo_usuario(request: Request):
-    datos = await request.json()
-    nombre = datos.get('nombre')
-    buzon = datos.get('buzon')
-    wlst = datos.get('wlst')
-    tipo_usuario = datos.get('tipo_usuario')
-    telefono = datos.get('telefono')
+    data = await request.json()
+    nombre = data.get('nombre')
+    buzon = data.get('buzon')
+    wlst = data.get('wlst')
+    tipo_usuario = data.get('tipo_usuario')
+    telefono = data.get('telefono')
+    if not nombre or not buzon or not wlst or not tipo_usuario or not telefono:
+        raise HTTPException(status_code=400, detail="Faltan campos")
 
     conexion = conectar()
     cursor = conexion.cursor()
