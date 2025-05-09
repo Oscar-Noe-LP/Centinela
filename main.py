@@ -9,7 +9,7 @@ from math import dist
 import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 import base64
-
+import traceback
 
 # Configuración de logs
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -167,31 +167,38 @@ async def websocket(websocket: WebSocket):
             logger.info("El WebSocket ya se había cerrado.")
 
 
-
 @app.post("/registro")
 async def agregar_nuevo_usuario(request: Request):
-    data = await request.json()
-    nombre = data.get('nombre')
-    buzon = data.get('buzon')
-    wlst = data.get('wlst')
-    tipo_usuario = data.get('tipo_usuario')
-    telefono = data.get('telefono')
-    if not nombre or not buzon or not wlst or not tipo_usuario or not telefono:
-        raise HTTPException(status_code=400, detail="Faltan campos")
+    try:
+        data = await request.json()
+        print("🟢 Datos recibidos:", data)
 
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Usuarios (Nombre, Buzón, wlst, Tipo_de_usuario, Teléfono)
-        VALUES (?, ?, ?, ?, ?)
-    """, (nombre, buzon, wlst, tipo_usuario, telefono))
-    usuario = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if usuario:
+        nombre = data.get('nombre')
+        buzon = data.get('buzon')
+        wlst = data.get('wlst')
+        tipo_usuario = data.get('tipo_usuario')
+        telefono = data.get('telefono')
+
+        if not all([nombre, buzon, wlst, tipo_usuario, telefono]):
+            raise HTTPException(status_code=400, detail="Faltan campos")
+
+        conexion = conectar()
+        cursor = conexion.cursor()
+        cursor.execute("""
+            INSERT INTO Usuarios (Nombre, Buzón, wlst, Tipo_de_usuario, Teléfono)
+            VALUES (?, ?, ?, ?, ?)
+        """, (nombre, buzon, wlst, tipo_usuario, telefono))
+        conexion.commit()
+
         return {"mensaje": "Usuario creado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al crear el usuario")
+    
+    except Exception as e:
+        print("❌ Error en backend:")
+        traceback.print_exc()  # 🔥 Esto te da el traceback completo
+        raise HTTPException(status_code=500, detail="Error interno en el servidor")
+    finally:
+        conexion.close()
+
 
 @app.post("/login")
 async def login_usuario(request: Request):
