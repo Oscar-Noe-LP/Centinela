@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
 
 const colors = {
   gray: '#929292',
@@ -7,11 +9,20 @@ const colors = {
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
+  const router = useRouter();
 
-  const handleSignIn = () => {
-    console.log('Sign in with:', form.email, form.password);
-      // cuando quede, sigue poner la logica para auteticar usuario aqui
-
+  const Login = async () => {
+    try {
+      const response = await axios.post('https://centinela.onrender.com/login', {
+        buzon: form.email,
+        wlst: form.password,
+      });
+      console.log('Login exitoso:', response.data);
+      router.push('/(tabs)/Principal'); 
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      Alert.alert('Error', 'Correo o contraseña incorrectos.');
+    }
   };
 
   return (
@@ -56,9 +67,7 @@ export default function Login() {
         </View>
         <View style={styles.formAction}>
           <TouchableOpacity
-            onPress={() => {
-              handleSignIn();
-            }}
+            onPress={Login}
           >
             <View style={styles.btn}>
               <Text style={styles.btnText}>iniciar sesión</Text>
