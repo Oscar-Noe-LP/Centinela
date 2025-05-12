@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
+import axios from 'axios';
+import { useRouter } from 'expo-router';
+
 
 const colors = {
   gray: '#929292',
@@ -7,10 +10,23 @@ const colors = {
 
 export default function Registro() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const router = useRouter();
 
-  const handleSignUp = () => {
-    console.log('Sign up with:', form.name, form.email, form.password);
-
+  const Registrar = async () => {
+    try {
+    const response = await axios.post('https://centinela.onrender.com/registro', {
+      nombre: form.name,
+      buzon: form.email,
+      wlst: form.password,
+      tipo_usuario: "Conductor",
+      telefono: String(Math.floor(Math.random() * 10000000000))
+    });
+    console.log('Registro exitoso:', response.data);
+    router.push('/(tabs)/Principal'); 
+    } catch (error) {
+    console.error('Error al registrarse:', error);
+    Alert.alert('Error', 'No se pudo registrar el usuario');
+    }
   };
 
   return (
@@ -63,7 +79,7 @@ export default function Registro() {
           />
         </View>
         <View style={styles.formAction}>
-          <TouchableOpacity onPress={handleSignUp}>
+          <TouchableOpacity onPress={Registrar}>
             <View style={styles.btn}>
               <Text style={styles.btnText}>Registrarse</Text>
             </View>
