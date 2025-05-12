@@ -12,7 +12,7 @@ export default function Configuracion() {
   const [selectedTone, setSelectedTone] = useState('Lluvia');
   const [selectedTheme, setSelectedTheme] = useState('Claro');
   const [contacts, setContacts] = useState<Contact[]>([
-    { id: '1', name: 'René Lara', phone: '' },
+    { id: '1', name: 'René Lara', phone: '4401006874' },
   ]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newContactName, setNewContactName] = useState('');
@@ -156,7 +156,7 @@ export default function Configuracion() {
         <View style={styles.emergencyContainer}>
           <Text style={labelStyle}>Contactos de confianza</Text>
           <View style={styles.contactsWrapper}>
-            <ScrollView style={styles.contactsList}>
+            <View style={styles.contactsList}>
               {contacts.map((contact) => (
                 <View key={contact.id} style={contactStyle}>
                   <View>
@@ -171,7 +171,7 @@ export default function Configuracion() {
                   </TouchableOpacity>
                 </View>
               ))}
-            </ScrollView>
+            </View>
             <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
               <Text style={styles.addButtonText}>Añadir contacto</Text>
             </TouchableOpacity>

@@ -48,10 +48,6 @@ export default function ModuloPadres() {
     console.log('Ver historial de', hijo.nombre);
   };
   
-  const verMapa = (hijo: Hijo) => {
-    console.log('Ver mapa de', hijo.nombre);
-  };
-  
   const eliminarHijo = (id: string) => {
     setListaHijos(listaHijos.filter((h) => h.id !== id));
   };
