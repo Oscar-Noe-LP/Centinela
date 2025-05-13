@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import {SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image,} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import axios from 'axios';
 
 interface Alerta {
   id: string;
@@ -14,15 +15,15 @@ interface Hijo {
   nombre: string;
   telefono: string;
 }
-// Cambios dentro del componente ModuloPadres
+
+const API_URL = "https://centinela.onrender.com";
+const rvp1 = "1"; 
 
 export default function ModuloPadres() {
   const [modalVisible, setModalVisible] = useState(false);
   const [nombreNuevoHijo, setNombreNuevoHijo] = useState('');
   const [telefonoNuevoHijo, setTelefonoNuevoHijo] = useState('');
-  const [listaHijos, setListaHijos] = useState<Hijo[]>([
-    { id: '1', nombre: 'Arturo Barajas', telefono: '5551234567' },
-  ]);
+  const [listaHijos, setListaHijos] = useState<Hijo[]>([]);
 
   const listaAlertas: Alerta[] = [
     { id: '1', fechaHora: '22042025', ubicacion: 'lol', detalle: 'Bostezo', usuario: 'Arturo Barajas' },
@@ -30,26 +31,62 @@ export default function ModuloPadres() {
     { id: '3', fechaHora: '230425', ubicacion: 'saa', detalle: 'Fatiga visual', usuario: 'Jesús Coronado' },
   ];
 
-  const agregarHijo = () => {
+  
+  useEffect(() => {
+    const fetchHijos = async () => {
+      try {
+        const response = await axios.get(`${API_URL}/contactos/${rvp1}`);
+        const hijos = response.data.map((item: any, index: number) => ({
+          id: index.toString(), 
+          nombre: item.Nombre_Contacto || item.nombre_contacto,
+          telefono: item.Teléfono_Contacto || item.telefono_contacto,
+        }));
+        setListaHijos(hijos);
+      } catch (error) {
+        console.error('Error al cargar hijos:', error);
+        setListaHijos([{ id: '1', nombre: 'Arturo Barajas', telefono: '5551234567' }]); 
+      }
+    };
+    fetchHijos();
+  }, [rvp1]);
+
+  const agregarHijo = async () => {
     if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
-      const nuevoHijo: Hijo = {
-        id: Date.now().toString(),
-        nombre: nombreNuevoHijo,
-        telefono: telefonoNuevoHijo,
-      };
-      setListaHijos([...listaHijos, nuevoHijo]);
-      setNombreNuevoHijo('');
-      setTelefonoNuevoHijo('');
-      setModalVisible(false);
+      try {
+        const responseContacto = await axios.post(`${API_URL}/contactos`, {
+          nombre_contacto: nombreNuevoHijo,
+          telefono_contacto: telefonoNuevoHijo,
+        });
+        const rvp5 = responseContacto.data.id || Date.now().toString(); 
+
+        await axios.post(`${API_URL}/contactos/asociar`, {
+          rvp1,
+          rvp5,
+        });
+
+        setListaHijos([...listaHijos, { id: rvp5, nombre: nombreNuevoHijo, telefono: telefonoNuevoHijo }]);
+        setNombreNuevoHijo('');
+        setTelefonoNuevoHijo('');
+        setModalVisible(false);
+      } catch (error) {
+        console.error('Error al guardar hijo:', error);
+        Alert.alert('Error', 'No se pudo guardar el hijo en la base de datos.');
+      }
     }
   };
 
   const verHistorial = (hijo: Hijo) => {
     console.log('Ver historial de', hijo.nombre);
   };
-  
-  const eliminarHijo = (id: string) => {
-    setListaHijos(listaHijos.filter((h) => h.id !== id));
+
+  const eliminarHijo = async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/contactos/${rvp1}/${id}`);
+      setListaHijos(listaHijos.filter((h) => h.id !== id));
+    } catch (error) {
+      console.error('Error al eliminar hijo:', error);
+      Alert.alert('Error', 'No se pudo eliminar el hijo de la base de datos.');
+    }
   };
 
   return (
@@ -59,59 +96,55 @@ export default function ModuloPadres() {
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <>
-          <Text style={estilos.tituloPrincipal}>Módulo para padres</Text>
-
-          <Text style={estilos.tituloSecundario}>Alertas recibidas</Text>
-
-          <View style={estilos.tabla}>
-            <View style={estilos.filaEncabezado}>
-              <Text style={estilos.celdaEncabezado}>Fecha y hora</Text>
-              <Text style={estilos.celdaEncabezado}>Ubicación</Text>
-              <Text style={estilos.celdaEncabezado}>Detalles</Text>
-              <Text style={estilos.celdaEncabezado}>Usuario</Text>
+            <Text style={estilos.tituloPrincipal}>Módulo para padres</Text>
+            <Text style={estilos.tituloSecundario}>Alertas recibidas</Text>
+            <View style={estilos.tabla}>
+              <View style={estilos.filaEncabezado}>
+                <Text style={estilos.celdaEncabezado}>Fecha y hora</Text>
+                <Text style={estilos.celdaEncabezado}>Ubicación</Text>
+                <Text style={estilos.celdaEncabezado}>Detalles</Text>
+                <Text style={estilos.celdaEncabezado}>Usuario</Text>
+              </View>
             </View>
-          </View>
           </>
         }
         renderItem={({ item }) => (
-            <View style={estilos.fila}>
-              <Text style={estilos.celda}>{item.fechaHora}</Text>
-              <Text style={estilos.celda}>{item.ubicacion}</Text>
-              <Text style={estilos.celda}>{item.detalle}</Text>
-              <Text style={estilos.celda}>{item.usuario}</Text>
-            </View>
+          <View style={estilos.fila}>
+            <Text style={estilos.celda}>{item.fechaHora}</Text>
+            <Text style={estilos.celda}>{item.ubicacion}</Text>
+            <Text style={estilos.celda}>{item.detalle}</Text>
+            <Text style={estilos.celda}>{item.usuario}</Text>
+          </View>
         )}
         ListFooterComponent={
-          <> 
-          <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
-          {listaHijos.map((hijo) => (
-          <View key={hijo.id} style={estilos.hijoContenedor}>
-            <View style={estilos.hijoFila}>
-              <Text style={estilos.hijoNombre}>{hijo.nombre}</Text>
-              <View style={estilos.botonesHijo}>
-                <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(hijo)}>
-                  <Text style={estilos.textoBoton}>Ver Historial</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(hijo.id)}>
-                  <Text style={estilos.textoBoton}>Eliminar</Text>
-                </TouchableOpacity>
+          <>
+            <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
+            {listaHijos.map((hijo) => (
+              <View key={hijo.id} style={estilos.hijoContenedor}>
+                <View style={estilos.hijoFila}>
+                  <Text style={estilos.hijoNombre}>{hijo.nombre}</Text>
+                  <View style={estilos.botonesHijo}>
+                    <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(hijo)}>
+                      <Text style={estilos.textoBoton}>Ver Historial</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(hijo.id)}>
+                      <Text style={estilos.textoBoton}>Eliminar</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
               </View>
-            </View>
-            <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
-          </View>
-        ))}
-
-          <TouchableOpacity
-            style={estilos.botonAsociar}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text style={estilos.textoBoton}>Asociar hijo</Text>
-          </TouchableOpacity>
-
-          <Image
-            source={require("../../assets/images/mapa.png")} 
-            style={estilos.mapa}
-          />
+            ))}
+            <TouchableOpacity
+              style={estilos.botonAsociar}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={estilos.textoBoton}>Asociar hijo</Text>
+            </TouchableOpacity>
+            <Image
+              source={require("../../assets/images/mapa.png")}
+              style={estilos.mapa}
+            />
           </>
         }
       />
@@ -137,7 +170,6 @@ export default function ModuloPadres() {
               <TouchableOpacity style={estilos.botonModal} onPress={agregarHijo}>
                 <Text style={estilos.textoBoton}>Aceptar</Text>
               </TouchableOpacity>
-
               <TouchableOpacity style={estilos.botonModal} onPress={() => setModalVisible(false)}>
                 <Text style={estilos.textoBoton}>Cancelar</Text>
               </TouchableOpacity>
@@ -250,10 +282,6 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 8,
   },
-  infoHijo: {
-    flexDirection: 'column',
-    flex: 1,
-  },
   botonesHijo: {
     flexDirection: 'row',
     gap: 6,
@@ -271,14 +299,15 @@ const estilos = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 20,
-    gap: 10, 
+    gap: 10,
   },
-  
   botonModal: {
-    flex: 1, 
+    flex: 1,
     paddingVertical: 10,
     backgroundColor: '#1ba098',
     borderRadius: 8,
     alignItems: 'center',
   },
 });
+
+
