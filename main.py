@@ -221,6 +221,28 @@ async def login_usuario(request: Request):
     else:
         raise HTTPException(status_code=400, detail="Error al obtener usuario")
 
+@app.get("/usuario/{rvp1}")
+async def obtener_usuario(rvp1: int):
+    conex = conectar()
+    cursor = conex.cursor()
+    cursor.execute("""
+        SELECT Nombre, Buzón, Tipo_de_usuario, Teléfono
+        FROM Usuarios
+        WHERE RVP1 = ?
+    """, (rvp1))
+    datosuser = cursor.fetchone()
+    conex.close()
+
+    if datosuser:
+        return {
+            "Nombre": datosuser[0],
+            "Buzón": datosuser[1],
+            "Tipousuario": datosuser[2],
+            "Teléfono": datosuser[3]
+        }
+    else:
+        raise HTTPException(status_code=400, detail="Error al obtener datos del usuario")
+
 
 @app.put("/actu_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
