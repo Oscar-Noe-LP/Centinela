@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert, ScrollView} from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
-
 
 const colors = {
   gray: '#929292',
 };
 
 export default function Registro() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', tipouser: '', telefono: '' });
   const router = useRouter();
 
   const Registrar = async () => {
@@ -18,8 +17,8 @@ export default function Registro() {
       nombre: form.name,
       buzon: form.email,
       wlst: form.password,
-      tipo_usuario: "Conductor",
-      telefono: String(Math.floor(Math.random() * 10000000000))
+      tipo_usuario: form.tipouser,
+      telefono: form.telefono
     });
     console.log('Registro exitoso:', response.data);
     router.push('/(tabs)/Principal'); 
@@ -31,147 +30,173 @@ export default function Registro() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#e8ecf4' }}>
-      <View style={styles.container}>
-        <View style={{ marginTop:1}}>
-          <Image
-            source={require('../../assets/images/centinela.png')}
-            style={styles.headerImg}
-            alt="Logo"
-          />
-          <Text style={styles.title}>Regístrate en Centinela</Text>
-          <Text style={styles.subtitle}>Crea tu cuenta para empezar</Text>
-        </View>
-        <View style={{marginTop: 16}}>
-          <Text style={styles.inputLabel}>Nombre</Text>
-          <TextInput
-            style={[styles.input, styles.inputControl]}
-            autoCapitalize="words"
-            autoCorrect={false}
-            placeholder="usuario"
-            placeholderTextColor={colors.gray}
-            value={form.name || ''}
-            onChangeText={(name) => setForm({ ...form, name })}
-          />
-        </View>
-        <View style={{marginTop: 1}}>
-          <Text style={styles.inputLabel}>Correo</Text>
-          <TextInput
-            style={[styles.input, styles.inputControl]}
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="email-address"
-            placeholder="arturo@example.com"
-            placeholderTextColor={colors.gray}
-            value={form.email || ''}
-            onChangeText={(email) => setForm({ ...form, email })}
-          />
-        </View>
-        <View style={{marginTop: 1}}>
-          <Text style={styles.inputLabel}>Contraseña</Text>
-          <TextInput
-            style={[styles.input, styles.inputControl]}
-            autoCapitalize="none"
-            secureTextEntry
-            placeholder="********"
-            placeholderTextColor={colors.gray}
-            value={form.password || ''}
-            onChangeText={(password) => setForm({ ...form, password })}
-          />
-        </View>
-        <View style={styles.formAction}>
-          <TouchableOpacity onPress={Registrar}>
-            <View style={styles.btn}>
-              <Text style={styles.btnText}>Registrarse</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-        <Text style={styles.formFooter}>
-          ¿Ya tienes cuenta?{' '}
-          <Text style={{ textDecorationLine: 'underline' }}>Inicia sesión</Text>
-        </Text>
-      </View>
-      <View style={styles.contenedor_pie}>
-          <Text style={styles.piepagina}>
-            ©Centinela 2025. TODOS LOS DERECHOS RESERVADOS.
+      <ScrollView>
+        <View style={styles.container}>
+          <View style={{ marginTop:1}}>
+            <Image
+              source={require('../../assets/images/centinela.png')}
+              style={styles.headerImg}
+              alt="Logo"
+            />
+            <Text style={styles.title}>Regístrate en Centinela</Text>
+            <Text style={styles.subtitle}>Crea tu cuenta para empezar</Text>
+          </View>
+          <View style={{marginTop: 16}}>
+            <Text style={styles.inputLabel}>Nombre</Text>
+            <TextInput
+              style={[styles.input, styles.inputControl]}
+              autoCapitalize="words"
+              autoCorrect={false}
+              placeholder="usuario"
+              placeholderTextColor={colors.gray}
+              value={form.name || ''}
+              onChangeText={(name) => setForm({ ...form, name })}
+            />
+          </View>
+          <View style={{marginTop: 1}}>
+            <Text style={styles.inputLabel}>Correo</Text>
+            <TextInput
+              style={[styles.input, styles.inputControl]}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              placeholder="arturo@example.com"
+              placeholderTextColor={colors.gray}
+              value={form.email || ''}
+              onChangeText={(email) => setForm({ ...form, email })}
+            />
+          </View>
+          <View style={{marginTop: 1}}>
+            <Text style={styles.inputLabel}>Contraseña</Text>
+            <TextInput
+              style={[styles.input, styles.inputControl]}
+              autoCapitalize="none"
+              secureTextEntry
+              placeholder="********"
+              placeholderTextColor={colors.gray}
+              value={form.password || ''}
+              onChangeText={(password) => setForm({ ...form, password })}
+            />
+          </View>
+          <View style={{marginTop: 1}}>
+            <Text style={styles.inputLabel}>Tipo de usuario</Text>
+            <TextInput
+              style={[styles.input, styles.inputControl]}
+              autoCapitalize="none"
+              secureTextEntry
+              placeholder="Padre, Hijo o Conductor"
+              placeholderTextColor={colors.gray}
+              value={form.tipouser || ''}
+              onChangeText={(tipouser) => setForm({ ...form, tipouser })}
+            />
+          </View>
+          <View style={{marginTop: 1}}>
+            <Text style={styles.inputLabel}>Teléfono</Text>
+            <TextInput
+              style={[styles.input, styles.inputControl]}
+              autoCapitalize="none"
+              secureTextEntry
+              placeholder="Número de teléfono"
+              placeholderTextColor={colors.gray}
+              value={form.telefono || ''}
+              onChangeText={(telefono) => setForm({ ...form, telefono })}
+            />
+          </View>
+          <View style={styles.formAction}>
+            <TouchableOpacity onPress={Registrar}>
+              <View style={styles.btn}>
+                <Text style={styles.btnText}>Registrarse</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.formFooter}>
+            ¿Ya tienes cuenta?{' '}
+            <Text style={{ textDecorationLine: 'underline' }}>Inicia sesión</Text>
           </Text>
-      </View>
+        </View>
+        <View style={styles.contenedor_pie}>
+            <Text style={styles.piepagina}>
+              ©Centinela 2025. TODOS LOS DERECHOS RESERVADOS.
+            </Text>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    flex: 1,  
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    flex: 1,
+    gap: 8,
   },
   headerImg: {
-    width: 150,
-    height: 150,
+    width: 100,
+    height: 100,
     alignSelf: 'center',
-    marginBottom: 10,
+    marginBottom: 6,
   },
   title: {
-    fontSize: 27,
+    fontSize: 22,
     fontWeight: '700',
     color: '#1e1e1e',
-    marginBottom: 6,
+    marginBottom: 2,
     textAlign: 'center',
   },
   subtitle: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
     color: '#929292',
     textAlign: 'center',
+    marginBottom: 6,
   },
   input: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   inputLabel: {
-    fontSize: 17,
+    fontSize: 14,
     fontWeight: '600',
     color: '#222',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   inputControl: {
-    height: 44,
+    height: 38,
     backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 16,
-    fontSize: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    fontSize: 13,
     fontWeight: '500',
-    color: '#ccc',
+    color: '#000',
     borderWidth: 1,
     borderColor: 'black',
   },
   formAction: {
-    marginVertical: 10,
+    marginVertical: 12,
     justifyContent: 'center',
     alignItems: 'center',
   },
   btn: {
     backgroundColor: '#1ba098',
-    borderRadius: 24,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: '#1ba098',
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
+    paddingVertical: 8,
     paddingHorizontal: 20,
   },
   btnText: {
-    fontSize: 18,
-    lineHeight: 26,
+    fontSize: 16,
+    lineHeight: 22,
     fontWeight: '600',
     color: '#fff',
   },
   formFooter: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '500',
     color: '#222',
     textAlign: 'center',
-    letterSpacing: 0.15,
+    marginTop: 6,
   },
   contenedor_pie: {
     alignItems: "center",
