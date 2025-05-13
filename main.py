@@ -244,7 +244,7 @@ async def obtener_usuario(rvp1: int):
         raise HTTPException(status_code=400, detail="Error al obtener datos del usuario")
 
 
-@app.put("/actu_user")
+@app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
     conexion = conectar()
     cursor = conexion.cursor()
