@@ -12,14 +12,17 @@ interface Alerta {
 
 interface Hijo {
   id: string;
+  rvp1_h: string;
   nombre: string;
   telefono: string;
 }
 
 const API_URL = "https://centinela.onrender.com";
-const rvp1 = "1"; 
 
-export default function ModuloPadres() {
+// Suponiendo que rvp1 se obtiene después de login (puedes gestionarlo con AsyncStorage o un contexto)
+const rvp1 = "1"; // Reemplaza con el ID del usuario padre real
+
+export default function ModoPadres() {
   const [modalVisible, setModalVisible] = useState(false);
   const [nombreNuevoHijo, setNombreNuevoHijo] = useState('');
   const [telefonoNuevoHijo, setTelefonoNuevoHijo] = useState('');
@@ -31,20 +34,15 @@ export default function ModuloPadres() {
     { id: '3', fechaHora: '230425', ubicacion: 'saa', detalle: 'Fatiga visual', usuario: 'Jesús Coronado' },
   ];
 
-  
+  // Cargar hijos desde la base de datos
   useEffect(() => {
     const fetchHijos = async () => {
       try {
-        const response = await axios.get(`${API_URL}/contactos/${rvp1}`);
-        const hijos = response.data.map((item: any, index: number) => ({
-          id: index.toString(), 
-          nombre: item.Nombre_Contacto || item.nombre_contacto,
-          telefono: item.Teléfono_Contacto || item.telefono_contacto,
-        }));
-        setListaHijos(hijos);
+        const response = await axios.get(`${API_URL}/modo_padres/${rvp1}`);
+        setListaHijos(response.data);
       } catch (error) {
         console.error('Error al cargar hijos:', error);
-        setListaHijos([{ id: '1', nombre: 'Arturo Barajas', telefono: '5551234567' }]); 
+        setListaHijos([{ id: '1', rvp1_h: '1', nombre: 'Arturo Barajas', telefono: '5551234567' }]); // Fallback
       }
     };
     fetchHijos();
@@ -53,18 +51,26 @@ export default function ModuloPadres() {
   const agregarHijo = async () => {
     if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
       try {
-        const responseContacto = await axios.post(`${API_URL}/contactos`, {
-          nombre_contacto: nombreNuevoHijo,
-          telefono_contacto: telefonoNuevoHijo,
-        });
-        const rvp5 = responseContacto.data.id || Date.now().toString(); 
+        // Generar un rvp1_h único (simulado, debería venir de un registro en Usuarios o ser manejado por el backend)
+        const nuevoRvp1H = listaHijos.length > 0 
+          ? Math.max(...listaHijos.map(h => parseInt(h.rvp1_h))) + 1 
+          : 1;
 
-        await axios.post(`${API_URL}/contactos/asociar`, {
-          rvp1,
-          rvp5,
+        // Enviar los datos del hijo directamente a Modo_Padres
+        const response = await axios.post(`${API_URL}/modo_padres`, {
+          rvp1: parseInt(rvp1),
+          rvp1_h: nuevoRvp1H,
+          nombre_hijo: nombreNuevoHijo,
+          telefono_hijo: telefonoNuevoHijo,
         });
 
-        setListaHijos([...listaHijos, { id: rvp5, nombre: nombreNuevoHijo, telefono: telefonoNuevoHijo }]);
+        // Actualizar la lista local con el id (RVP9) devuelto por el servidor
+        setListaHijos([...listaHijos, {
+          id: response.data.id,
+          rvp1_h: nuevoRvp1H.toString(),
+          nombre: nombreNuevoHijo,
+          telefono: telefonoNuevoHijo,
+        }]);
         setNombreNuevoHijo('');
         setTelefonoNuevoHijo('');
         setModalVisible(false);
@@ -72,6 +78,8 @@ export default function ModuloPadres() {
         console.error('Error al guardar hijo:', error);
         Alert.alert('Error', 'No se pudo guardar el hijo en la base de datos.');
       }
+    } else {
+      Alert.alert('Error', 'Por favor, completa todos los campos.');
     }
   };
 
@@ -81,7 +89,7 @@ export default function ModuloPadres() {
 
   const eliminarHijo = async (id: string) => {
     try {
-      await axios.delete(`${API_URL}/contactos/${rvp1}/${id}`);
+      await axios.delete(`${API_URL}/modo_padres/${rvp1}/${id}`);
       setListaHijos(listaHijos.filter((h) => h.id !== id));
     } catch (error) {
       console.error('Error al eliminar hijo:', error);
@@ -309,5 +317,3 @@ const estilos = StyleSheet.create({
     alignItems: 'center',
   },
 });
-
-
