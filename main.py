@@ -25,11 +25,9 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
-
 @app.get("/")
 def inicio():
     return {"message": "Hola mundo, conexión correctamente realizada"}
-
 
 pix = _normalized_to_pixel_coordinates
 
@@ -50,7 +48,6 @@ def conectar():
     conec = sqlite3.connect("centinela.db")
     conec.execute('PRAGMA foreign_keys = ON;')
     return conec
-
 
 def procesar_frame(frame):
     frame_gris = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -119,7 +116,6 @@ def procesar_frame(frame):
             return {"error": "Error calculando métricas", "detalle": str(e)}
     
     return {"Error": "No se detectó rostro"}
-    
 
 @app.websocket("/ws/deteccion")
 async def websocket(websocket: WebSocket):
@@ -128,17 +124,13 @@ async def websocket(websocket: WebSocket):
 
     try:
         while True:
-            # Recibir datos como JSON
             data = await websocket.receive_json()
             
-            # Aquí asumo que 'data' es un objeto JSON que contiene la imagen en base64 o en otro formato que debes decodificar.
-            # Si la imagen está en base64, necesitarás decodificarla.
             if "imagen" not in data:
                 await websocket.send_json({"error": "No se encontró la clave 'imagen'"})
                 continue
 
             imagen_base64 = data["imagen"]
-            # Decodificar la imagen base64 (si es el caso)
             try:
                 img_data = base64.b64decode(imagen_base64)
                 npimg = np.frombuffer(img_data, np.uint8)
@@ -151,21 +143,16 @@ async def websocket(websocket: WebSocket):
                 await websocket.send_json({"error": "Imagen inválida"})
                 continue
 
-            # Procesar la imagen
             resultados = procesar_frame(frame)
-
-            # Enviar resultados al cliente
             await websocket.send_json(resultados)
 
     except Exception as e:
         logger.error(f"WebSocket desconectado: {e}")
     finally:
-        # Asegúrate de que se cierre solo una vez
         try:
             await websocket.close()
         except RuntimeError:
             logger.info("El WebSocket ya se había cerrado.")
-
 
 @app.post("/registro")
 async def agregar_nuevo_usuario(request: Request):
@@ -187,14 +174,16 @@ async def agregar_nuevo_usuario(request: Request):
             VALUES (?, ?, ?, ?, ?)
         """, (nombre, buzon, wlst, tipo_usuario, telefono))
         conexion.commit()
-
-        return {"mensaje": "Usuario creado con éxito"}
+        cursor.execute("SELECT last_insert_rowid()")
+        rvp1 = cursor.fetchone()[0]
+        conexion.close()
+        return {"id": str(rvp1), "mensaje": "Usuario creado con éxito"}
     
     except Exception as e:
-        raise HTTPException(status_code=500, detail="Error interno en el servidor")
+        raise HTTPException(status_code=500, detail=f"Error interno en el servidor: {str(e)}")
     finally:
-        conexion.close()
-
+        if 'conexion' in locals():
+            conexion.close()
 
 @app.post("/login")
 async def login_usuario(request: Request):
@@ -217,10 +206,9 @@ async def login_usuario(request: Request):
     
     if user:
         id_usuario = user[0]
-        return id_usuario  
+        return {"id": str(id_usuario), "nombre": user[1], "buzon": user[2]}
     else:
         raise HTTPException(status_code=400, detail="Error al obtener usuario")
-
 
 @app.get("/usuario/{rvp1}")
 async def obtener_usuario(rvp1: int):
@@ -244,7 +232,6 @@ async def obtener_usuario(rvp1: int):
     else:
         raise HTTPException(status_code=400, detail="Error al obtener datos del usuario")
 
-
 @app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
     conexion = conectar()
@@ -254,13 +241,12 @@ async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
         SET Nombre = ?, Teléfono = ?
         WHERE RVP1 = ?
     """, (nombre, telefono, rvp1))
-    new = cursor.fetchone()
+    if cursor.rowcount == 0:
+        conexion.close()
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
     conexion.commit()
     conexion.close()
-    if new:
-        return {"mensaje": "Usuario actualizado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al actualizar usuario")
+    return {"mensaje": "Usuario actualizado con éxito"}
 
 @app.post("/tonos")
 async def agregar_tono_sistema(nombre_tono: str):
@@ -270,13 +256,11 @@ async def agregar_tono_sistema(nombre_tono: str):
         INSERT INTO Tonos (Nombre_del_Tono)
         VALUES (?)
     """, (nombre_tono,))
-    tono = cursor.fetchone()
     conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp8 = cursor.fetchone()[0]
     conexion.close()
-    if tono:
-        return {"mensaje": "tono agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar tono")
+    return {"id": str(rvp8), "mensaje": "Tono agregado con éxito"}
 
 @app.post("/configuracion")
 async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
@@ -286,13 +270,11 @@ async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str
         INSERT INTO Configuración (RVP1, RVP8, Alertas_visuales, Tema_app)
         VALUES (?, ?, ?, ?)
     """, (rvp1, rvp8, alertas_visuales, tema_app))
-    conf = cursor.fetchone()
     conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp7 = cursor.fetchone()[0]
     conexion.close()
-    if conf:
-        return {"mensaje": "configuración establecida con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar app")
+    return {"id": str(rvp7), "mensaje": "Configuración establecida con éxito"}
 
 @app.post("/contactos")
 async def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
@@ -302,13 +284,11 @@ async def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
         INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
         VALUES (?, ?)
     """, (nombre_contacto, telefono_contacto))
-    cont = cursor.fetchone()
     conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp5 = cursor.fetchone()[0]
     conexion.close()
-    if cont:
-        return {"mensaje": "contacto agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar contacto")
+    return {"id": str(rvp5), "mensaje": "Contacto agregado con éxito"}
 
 @app.post("/contactos/asociar")
 async def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
@@ -318,14 +298,10 @@ async def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
         INSERT INTO Contactos_Asociados (RVP1, RVP5)
         VALUES (?, ?)
     """, (rvp1, rvp5))
-    asoc = cursor.fetchone()
     conexion.commit()
     conexion.close()
-    if asoc:
-        return {"mensaje": "contacto asociado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al asociar contacto")
-    
+    return {"mensaje": "Contacto asociado con éxito"}
+
 @app.post("/sesion")
 async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
     conexion = conectar()
@@ -334,13 +310,11 @@ async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_ini
         INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio, Fecha_Fin, Hora_Fin)
         VALUES (?, ?, ?, ?, ?)
     """, (rvp1, fecha_inicio, hora_inicio, fecha_fin, hora_fin))
-    sesion = cursor.fetchone()
     conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp2 = cursor.fetchone()[0]
     conexion.close()
-    if sesion:
-        return {"mensaje": "sesion registrada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar sesion")
+    return {"id": str(rvp2), "mensaje": "Sesión registrada con éxito"}
 
 @app.post("/alertas")
 async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, contenido: str):
@@ -350,13 +324,11 @@ async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, conte
         INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Contenido)
         VALUES (?, ?, ?, ?, ?)
     """, (rvp2, fecha, hora, ubicacion, contenido))
-    alert = cursor.fetchone()
     conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp3 = cursor.fetchone()[0]
     conexion.close()
-    if alert:
-        return {"mensaje": "alerta guardada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar alerta")
+    return {"id": str(rvp3), "mensaje": "Alerta guardada con éxito"}
 
 @app.post("/alertas/destinatarios")
 async def notificar_contactos(rvp3: int, rvp5: int):
@@ -366,29 +338,51 @@ async def notificar_contactos(rvp3: int, rvp5: int):
         INSERT INTO Destinatarios_de_Alertas (RVP3, RVP5)
         VALUES (?, ?)
     """, (rvp3, rvp5))
-    desti = cursor.fetchone()
     conexion.commit()
     conexion.close()
-    if desti:
-        return {"mensaje": "contacto notificado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al notificar contacto")
+    return {"mensaje": "Contacto notificado con éxito"}
 
 @app.post("/modo_padres")
-async def configurar_modo_padres(rvp1: int, rvp1_h: int, tipo_notificacion: str):
+async def configurar_modo_padres(rvp1: int, rvp1_h: int, nombre_hijo: str, telefono_hijo: str):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        INSERT INTO Modo_Padres (RVP1, RVP1_H, Tipo_de_notificación)
-        VALUES (?, ?, ?)
-    """, (rvp1, rvp1_h, tipo_notificacion))
-    mod = cursor.fetchone()
+        INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
+        VALUES (?, ?, ?, ?)
+    """, (rvp1, rvp1_h, nombre_hijo, telefono_hijo))
+    conexion.commit()
+    cursor.execute("SELECT last_insert_rowid()")
+    rvp9 = cursor.fetchone()[0]
+    conexion.close()
+    return {"id": str(rvp9), "mensaje": "Modo padres configurado con éxito"}
+
+@app.get("/modo_padres/{rvp1}")
+async def obtener_hijos(rvp1: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT RVP9, RVP1_H, Nombre_hijo, Telefono_hijo
+        FROM Modo_Padres
+        WHERE RVP1 = ?
+    """, (rvp1,))
+    resultado = cursor.fetchall()
+    conexion.close()
+    return [{"id": str(row[0]), "rvp1_h": str(row[1]), "nombre": row[2], "telefono": row[3]} for row in resultado]
+
+@app.delete("/modo_padres/{rvp1}/{rvp9}")
+async def eliminar_hijo(rvp1: int, rvp9: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        DELETE FROM Modo_Padres
+        WHERE RVP1 = ? AND RVP9 = ?
+    """, (rvp1, rvp9))
+    if cursor.rowcount == 0:
+        conexion.close()
+        raise HTTPException(status_code=404, detail="Hijo no encontrado")
     conexion.commit()
     conexion.close()
-    if mod:
-        return {"message": "modo padres configurado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
+    return {"mensaje": "Hijo eliminado con éxito"}
 
 @app.get("/configuracion/{rvp1}")
 async def obtener_configuracion_usuario(rvp1: int):
@@ -402,48 +396,55 @@ async def obtener_configuracion_usuario(rvp1: int):
     """, (rvp1,))
     resultado = cursor.fetchone()
     conexion.close()
-    return resultado
+    if resultado:
+        return {
+            "Alertas_visuales": resultado[0],
+            "Tema_app": resultado[1],
+            "Nombre_del_Tono": resultado[2]
+        }
+    else:
+        raise HTTPException(status_code=404, detail="Configuración no encontrada")
 
 @app.get("/contactos/{rvp1}")
 async def obtener_contactos_confiables_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        SELECT Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
+        SELECT Contactos_de_Confianza.RVP5, Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
         FROM Contactos_de_Confianza
         JOIN Contactos_Asociados ON Contactos_Asociados.RVP5 = Contactos_de_Confianza.RVP5
         WHERE Contactos_Asociados.RVP1 = ?
     """, (rvp1,))
     resultado = cursor.fetchall()
     conexion.close()
-    return resultado
+    return [{"id": str(row[0]), "nombre": row[1], "telefono": row[2]} for row in resultado]
 
 @app.get("/sesion/{rvp1}")
 def obtener_sesiones_manejo(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        SELECT Sesiones_de_Manejo.Fecha_Inicio, Sesiones_de_Manejo.Hora_Inicio, Sesiones_de_Manejo.Fecha_Fin, Sesiones_de_Manejo.Hora_Fin
+        SELECT RVP2, Fecha_Inicio, Hora_Inicio, Fecha_Fin, Hora_Fin
         FROM Sesiones_de_Manejo
-        WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
+        WHERE RVP1 = ? AND Fecha_Fin >= CURRENT_DATE
     """, (rvp1,))
     resultado = cursor.fetchall()
     conexion.close()
-    return resultado
+    return [{"id": str(row[0]), "Fecha_Inicio": row[1], "Hora_Inicio": row[2], "Fecha_Fin": row[3], "Hora_Fin": row[4]} for row in resultado]
 
 @app.get("/alertas/sesion/{rvp1}")
 def obtener_alertas(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        SELECT Alertas_Generadas.Fecha, Alertas_Generadas.Hora, Alertas_Generadas.Ubicación, Alertas_Generadas.Contenido
+        SELECT Alertas_Generadas.RVP3, Alertas_Generadas.Fecha, Alertas_Generadas.Hora, Alertas_Generadas.Ubicación, Alertas_Generadas.Contenido
         FROM Alertas_Generadas
         JOIN Sesiones_de_Manejo ON Sesiones_de_Manejo.RVP2 = Alertas_Generadas.RVP2
         WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
     """, (rvp1,))
     resultado = cursor.fetchall()
     conexion.close()
-    return resultado
+    return [{"id": str(row[0]), "Fecha": row[1], "Hora": row[2], "Ubicación": row[3], "Contenido": row[4]} for row in resultado]
 
 @app.get("/alertas/destinatarios/{rvp3}")
 def obtener_destinatarios_alerta(rvp3: int):
@@ -457,21 +458,7 @@ def obtener_destinatarios_alerta(rvp3: int):
     """, (rvp3,))
     resultado = cursor.fetchall()
     conexion.close()
-    return resultado
-
-@app.get("/modo_padres/{rvp1}")
-def obtener_modo_padre_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Usuarios.Nombre, Modo_Padres.Tipo_de_notificación
-        FROM Modo_Padres
-        JOIN Usuarios ON Usuarios.RVP1 = Modo_Padres.RVP1_H
-        WHERE Modo_Padres.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchone()
-    conexion.close()
-    return resultado
+    return [{"Nombre_Contacto": row[0], "Teléfono_Contacto": row[1]} for row in resultado]
 
 @app.delete("/contactos/{rvp1}/{rvp5}")
 def eliminar_contacto_confiable_usuario(rvp1: int, rvp5: int):
@@ -481,6 +468,9 @@ def eliminar_contacto_confiable_usuario(rvp1: int, rvp5: int):
         DELETE FROM Contactos_Asociados
         WHERE RVP1 = ? AND RVP5 = ?
     """, (rvp1, rvp5))
+    if cursor.rowcount == 0:
+        conexion.close()
+        raise HTTPException(status_code=404, detail="Contacto no encontrado")
     conexion.commit()
     conexion.close()
     return {"mensaje": "Contacto eliminado con éxito"}
