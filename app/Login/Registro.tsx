@@ -21,7 +21,7 @@ export default function Registro() {
       telefono: form.telefono
     });
     console.log('Registro exitoso:', response.data);
-    router.push('/(tabs)/Principal'); 
+    router.push('/'); 
     } catch (error) {
     console.error('Error al registrarse:', error);
     Alert.alert('Error', 'No se pudo registrar el usuario');

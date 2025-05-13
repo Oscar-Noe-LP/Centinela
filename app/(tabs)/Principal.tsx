@@ -1,8 +1,18 @@
-import { View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import {Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Home() {
   const router = useRouter();
+
+  const cerrarsesion = async () => {
+    try{
+      await AsyncStorage.removeItem('IdUsuario');
+      console.log('Sesión cerrada');
+    } catch (error) {
+    console.error('Error al cerrar sesión:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -10,13 +20,12 @@ export default function Home() {
       <Image
         source={require('../../assets/images/centinela.png')}
         style={styles.headerImg}
-        alt="Logo"
         resizeMode="contain"
       />
       <Text>Navega entre las pantallas a través de la barra inferior</Text>
       <TouchableOpacity 
-        style={styles.button} onPress={() => router.push('/')}>
-          <Text style={styles.buttonText}> Regresar a Home </Text>
+        style={styles.button} onPress={async () => {await cerrarsesion(); router.push('/');}}>
+          <Text style={styles.buttonText}> Cerrar sesión </Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

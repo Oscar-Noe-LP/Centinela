@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, Image, TextInput, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const colors = {
   gray: '#929292',
@@ -17,7 +18,11 @@ export default function Login() {
         buzon: form.email,
         wlst: form.password,
       });
-      console.log('Login exitoso:', response.data);
+
+      const iduser = response.data;
+      await AsyncStorage.setItem('IdUsuario', iduser.toString());
+      
+      console.log('Login exitoso:', iduser);
       router.push('/(tabs)/Principal'); 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);

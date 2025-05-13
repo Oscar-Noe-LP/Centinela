@@ -1,5 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import React, { useState, useEffect, useMemo } from 'react';
 import {SafeAreaView, View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView } from 'react-native';
+import axios from 'axios';
 
 interface Contact {
   id: string;
@@ -7,16 +9,40 @@ interface Contact {
   phone: string;
 }
 
+interface Usuario {
+  Nombre: string;
+  Buzón: string;
+  Tipousuario: string;
+  Teléfono: string;
+}
+
 export default function Configuracion() {
   const [showVisualAlerts, setShowVisualAlerts] = useState(true);
   const [selectedTone, setSelectedTone] = useState('Lluvia');
   const [selectedTheme, setSelectedTheme] = useState('Claro');
   const [contacts, setContacts] = useState<Contact[]>([
-    { id: '1', name: 'René Lara', phone: '4401006874' },
+    { id: '1', name: 'René Lara', phone: '' },
   ]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+  const [usuario, setUsuario] =  useState<Usuario | null>(null);
+
+  useEffect(() => {
+    const obtenerdatos = async () => {
+      const rvp1 = await AsyncStorage.getItem('IdUsuario');
+      if (rvp1) {
+        try {
+          const response = await axios.get(`https://centinela.onrender.com/usuario/${rvp1}`);
+          setUsuario(response.data);
+        } catch (error) {
+          console.error('Error al obtener datos del usuario:', error);
+        }
+      }
+    };
+    obtenerdatos();
+  }, []);
+
 
   const handleAddContact = () => {
     if (newContactName.trim()) {
@@ -54,19 +80,23 @@ export default function Configuracion() {
       <ScrollView style={containerStyle}>
         <Text style={[styles.title, textStyle]}>Perfil y Configuración</Text>
 
-        {/* Campos de etiquetas para datos del usuario */}
         <View style={styles.inputContainer}>
           <Text style={[styles.inputLabel, textStyle]}>Nombre:</Text>
-          <Text style={[styles.input, textStyle]}>Arturo Barajas</Text>
+          <Text style={[styles.input, textStyle]}>{usuario?.Nombre || 'Cargando...'}</Text>
         </View>
         <View style={styles.inputContainer}>
           <Text style={[styles.inputLabel, textStyle]}>Correo:</Text>
-          <Text style={[styles.input, textStyle]}>urodz@gmail.com</Text>
+          <Text style={[styles.input, textStyle]}>{usuario?.Buzón || 'Cargando...'}</Text>
         </View>
         <View style={styles.inputContainer}>
           <Text style={[styles.inputLabel, textStyle]}>Tipo de usuario:</Text>
-          <Text style={[styles.input, textStyle]}>Padre</Text>
+          <Text style={[styles.input, textStyle]}>{usuario?.Tipousuario || 'Cargando...'}</Text>
         </View>
+        <View style={styles.inputContainer}>
+          <Text style={[styles.inputLabel, textStyle]}>Teléfono:</Text>
+          <Text style={[styles.input, textStyle]}>{usuario?.Teléfono || 'Cargando...'}</Text>
+        </View>
+
 
         <View style={styles.toggleContainer}>
           <Text style={labelStyle}>Mostrar alertas visuales</Text>
@@ -156,7 +186,7 @@ export default function Configuracion() {
         <View style={styles.emergencyContainer}>
           <Text style={labelStyle}>Contactos de confianza</Text>
           <View style={styles.contactsWrapper}>
-            <View style={styles.contactsList}>
+            <ScrollView style={styles.contactsList}>
               {contacts.map((contact) => (
                 <View key={contact.id} style={contactStyle}>
                   <View>
@@ -171,7 +201,7 @@ export default function Configuracion() {
                   </TouchableOpacity>
                 </View>
               ))}
-            </View>
+            </ScrollView>
             <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
               <Text style={styles.addButtonText}>Añadir contacto</Text>
             </TouchableOpacity>
@@ -448,7 +478,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
     left: 0,
     right: 0,
   },
