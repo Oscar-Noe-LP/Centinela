@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { useState, useEffect, useMemo } from 'react';
-import {SafeAreaView, View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView } from 'react-native';
+import {SafeAreaView, View, Text, StyleSheet, TextInput, TouchableOpacity, Switch, Modal, Image, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
 
 interface Contact {
@@ -21,7 +21,7 @@ export default function Configuracion() {
   const [selectedTone, setSelectedTone] = useState('Lluvia');
   const [selectedTheme, setSelectedTheme] = useState('Claro');
   const [contacts, setContacts] = useState<Contact[]>([
-    { id: '1', name: 'René Lara', phone: '' },
+    {id: '0', name: 'Ejemplo', phone: '0000000000' },
   ]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newContactName, setNewContactName] = useState('');
@@ -44,14 +44,28 @@ export default function Configuracion() {
   }, []);
 
 
-  const handleAddContact = () => {
+  const Anhadircontacto = async () => {
     if (newContactName.trim()) {
-      const newContact = {
-        id: Date.now().toString(),
-        name: newContactName,
-        phone: newContactPhone,
-      };
-      setContacts([...contacts, newContact]);
+      const rvp1 = await AsyncStorage.getItem('IdUsuario');
+      if (rvp1) {
+        try {
+          const response = await axios.post('https://centinela.onrender.com/contactos', {
+            nombre_contacto: newContactName,
+            telefono_contacto: newContactPhone,
+            rvp1: rvp1
+          });
+          const newContact = {
+            id: response.data.id_contacto,
+            name: newContactName,
+            phone: newContactPhone
+          };
+          console.log('Contacto registrado:', response.data);
+          setContacts(prev => [...prev, newContact]);
+        } catch (error) {
+          console.error('Error al registrar contacto:', error);
+          Alert.alert('Error', 'Datos del contacto no guardados');
+        }
+      }
       setNewContactName('');
       setNewContactPhone('');
       setModalVisible(false);
@@ -186,9 +200,9 @@ export default function Configuracion() {
         <View style={styles.emergencyContainer}>
           <Text style={labelStyle}>Contactos de confianza</Text>
           <View style={styles.contactsWrapper}>
-            <ScrollView style={styles.contactsList}>
+            <View style={styles.contactsList}>
               {contacts.map((contact) => (
-                <View key={contact.id} style={contactStyle}>
+                <View key={contact.name} style={contactStyle}>
                   <View>
                     <Text style={[styles.contactText, textStyle]}>{contact.name}</Text>
                     {contact.phone ? <Text style={[styles.contactPhone, textStyle]}>{contact.phone}</Text> : null}
@@ -201,7 +215,7 @@ export default function Configuracion() {
                   </TouchableOpacity>
                 </View>
               ))}
-            </ScrollView>
+            </View>
             <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
               <Text style={styles.addButtonText}>Añadir contacto</Text>
             </TouchableOpacity>
@@ -249,7 +263,7 @@ export default function Configuracion() {
                 >
                   <Text style={styles.modalButtonText}>Cancelar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.modalButton} onPress={handleAddContact}>
+                <TouchableOpacity style={styles.modalButton} onPress={Anhadircontacto}>
                   <Text style={styles.modalButtonText}>Guardar</Text>
                 </TouchableOpacity>
               </View>
