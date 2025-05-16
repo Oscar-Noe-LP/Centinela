@@ -239,7 +239,47 @@ async def obtener_usuario(rvp1: int):
         }
     else:
         raise HTTPException(status_code=400, detail="Error al obtener datos del usuario")
- 
+
+
+@app.post("/contactos")
+async def agregar_contacto(request: Request):
+    datos = await request.json()
+
+    nombre_contacto = datos.get("nombre_contacto")
+    telefono_contacto = datos.get("telefono_contacto")
+    rvp1 = datos.get("rvp1")
+
+    if not nombre_contacto or not telefono_contacto or rvp1 is None:
+        raise HTTPException(status_code=400, detail="Faltan datos necesarios")
+
+    conexion = conectar()
+    cursor = conexion.cursor()
+
+    try:
+        cursor.execute("""
+            INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
+            VALUES (?, ?)
+        """, (nombre_contacto, telefono_contacto))
+
+        rvp5 = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO Contactos_Asociados (RVP1, RVP5)
+            VALUES (?, ?)
+        """, (rvp1, rvp5))
+
+        conexion.commit()
+        conexion.close()
+        return {
+            "mensaje": "Contacto agregado y asociado con éxito",
+            "id_contacto": rvp5,
+            "id_usuario": rvp1
+        }
+
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
  
 @app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
@@ -289,39 +329,7 @@ async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str
         return {"mensaje": "configuración establecida con éxito"}
     else:
         raise HTTPException(status_code=400, detail="Error al configurar app")
- 
-@app.post("/contactos")
-async def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
-        VALUES (?, ?)
-    """, (nombre_contacto, telefono_contacto))
-    cont = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if cont:
-        return {"mensaje": "contacto agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar contacto")
- 
-@app.post("/contactos/asociar")
-async def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Contactos_Asociados (RVP1, RVP5)
-        VALUES (?, ?)
-    """, (rvp1, rvp5))
-    asoc = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if asoc:
-        return {"mensaje": "contacto asociado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al asociar contacto")
-   
+    
 @app.post("/sesion")
 async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
     conexion = conectar()
