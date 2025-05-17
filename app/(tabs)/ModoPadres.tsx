@@ -50,68 +50,36 @@ export default function ModoPadres() {
   }, [rvp1]);
 
 
-  const ModoPadres = async () => {
-    if (nombreNuevoHijo.trim()) {
+  const agregarHijo = async () => {
+    if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
       const rvp1 = await AsyncStorage.getItem('IdUsuario');
       if (rvp1) {
         try {
-          const response = await axios.post('https://centinela.onrender.com/modo_padres', { 
-            nombre_contacto: nombreNuevoHijo,
-            telefono_contacto: telefonoNuevoHijo,
-            rvp1: rvp1
+          const response = await axios.post('https://centinela.onrender.com/modo_padres', {
+            rvp1: rvp1,
+            rvp1_h: Math.floor(Math.random() * 1000),
+            Nombre_hijo: nombreNuevoHijo,
+            Telefono_hijo: telefonoNuevoHijo,
           });
-          const newContact = {
-            id: response.data.id_contacto,
-            name: nombreNuevoHijo,
-            phone: telefonoNuevoHijo
+          const nuevoHijo = {
+            id: response.data.rvp1_h,
+            nombre: nombreNuevoHijo,
+            telefono: telefonoNuevoHijo
           };
-          console.log('hijo asociado:', response.data);
-          setContacts(prev => [...prev, newContact]);
+          console.log('Hijo registrado:', response.data);
+          setListaHijos(prev => [...prev, nuevoHijo]);
         } catch (error) {
-          console.error('Error al asociar hijo:', error);
+          console.error('Error al registrar hijos:', error);
           Alert.alert('Error', 'Datos del hijo no guardados');
         }
       }
-      setNewContactName('');
-      setNewContactPhone('');
+      setNombreNuevoHijo('');
+      setTelefonoNuevoHijo('');
       setModalVisible(false);
     }
   };
 
-  const agregarHijo = async () => {
-    if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
-      try {
-        // Generar un rvp1_h único (simulado, debería venir de un registro en Usuarios o ser manejado por el backend)
-        const nuevoRvp1H = listaHijos.length > 0 
-          ? Math.max(...listaHijos.map(h => parseInt(h.rvp1_h))) + 1 
-          : 1;
 
-        // Enviar los datos del hijo directamente a Modo_Padres
-        const response = await axios.post(`${API_URL}/modo_padres`, {
-          rvp1: parseInt(rvp1),
-          rvp1_h: nuevoRvp1H,
-          nombre_hijo: nombreNuevoHijo,
-          telefono_hijo: telefonoNuevoHijo,
-        });
-
-        // Actualizar la lista local con el id (RVP9) devuelto por el servidor
-        setListaHijos([...listaHijos, {
-          id: response.data.id,
-          rvp1_h: nuevoRvp1H.toString(),
-          nombre: nombreNuevoHijo,
-          telefono: telefonoNuevoHijo,
-        }]);
-        setNombreNuevoHijo('');
-        setTelefonoNuevoHijo('');
-        setModalVisible(false);
-      } catch (error) {
-        console.error('Error al guardar hijo:', error);
-        Alert.alert('Error', 'No se pudo guardar el hijo en la base de datos.');
-      }
-    } else {
-      Alert.alert('Error', 'Por favor, completa todos los campos.');
-    }
-  };
 
   const verHistorial = (hijo: Hijo) => {
     console.log('Ver historial de', hijo.nombre);
