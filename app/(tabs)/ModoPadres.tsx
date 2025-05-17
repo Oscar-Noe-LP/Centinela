@@ -98,36 +98,42 @@ export default function ModuloPadres() {
             </View>
         )}
         ListFooterComponent={
-          <> 
-          <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
-          {listaHijos.map((hijo) => (
-          <View key={hijo.id} style={estilos.hijoContenedor}>
-            <View style={estilos.hijoFila}>
-              <Text style={estilos.hijoNombre}>{hijo.nombre}</Text>
-              <View style={estilos.botonesHijo}>
-                <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(hijo)}>
-                  <Text style={estilos.textoBoton}>Ver Historial</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(hijo.id)}>
-                  <Text style={estilos.textoBoton}>Eliminar</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <Text style={estilos.telefonoHijo}>{hijo.telefono}</Text>
-          </View>
-        ))}
+          <>
+            <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
+            
+            <FlatList
+              data={listaHijos}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => (
+                <View style={estilos.hijoContenedor}>
+                  <View style={estilos.hijoFila}>
+                    <Text style={estilos.hijoNombre}>{item.nombre}</Text>
+                    <View style={estilos.botonesHijo}>
+                      <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(item)}>
+                        <Text style={estilos.textoBoton}>Ver Historial</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(item.id)}>
+                        <Text style={estilos.textoBoton}>Eliminar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <Text style={estilos.telefonoHijo}>{item.telefono}</Text>
+                </View>
+              )}
+              scrollEnabled={false} // Esto es importante para que no interfiera con el scroll principal
+            />
 
-          <TouchableOpacity
-            style={estilos.botonAsociar}
-            onPress={() => setModalVisible(true)}
-          >
-            <Text style={estilos.textoBoton}>Asociar hijo</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={estilos.botonAsociar}
+              onPress={() => setModalVisible(true)}
+            >
+              <Text style={estilos.textoBoton}>Asociar hijo</Text>
+            </TouchableOpacity>
 
-          <Image
-            source={require("../../assets/images/mapa.png")} 
-            style={estilos.mapa}
-          />
+            <Image
+              source={require("../../assets/images/mapa.png")} 
+              style={estilos.mapa}
+            />
           </>
         }
       />
