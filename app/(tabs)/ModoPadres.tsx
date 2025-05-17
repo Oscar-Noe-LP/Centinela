@@ -51,19 +51,19 @@ export default function ModoPadres() {
 
 
   const ModoPadres = async () => {
-    if (newContactName.trim()) {
+    if (nombreNuevoHijo.trim()) {
       const rvp1 = await AsyncStorage.getItem('IdUsuario');
       if (rvp1) {
         try {
-          const response = await axios.post('https://centinela.onrender.com/ModoPadres', {
-            nombre_contacto: newContactName,
-            telefono_contacto: newContactPhone,
+          const response = await axios.post('https://centinela.onrender.com/modo_padres', { 
+            nombre_contacto: nombreNuevoHijo,
+            telefono_contacto: telefonoNuevoHijo,
             rvp1: rvp1
           });
           const newContact = {
             id: response.data.id_contacto,
-            name: newContactName,
-            phone: newContactPhone
+            name: nombreNuevoHijo,
+            phone: telefonoNuevoHijo
           };
           console.log('hijo asociado:', response.data);
           setContacts(prev => [...prev, newContact]);
