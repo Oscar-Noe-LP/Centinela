@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+import { SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image, Alert, } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
 interface Alerta {
-  id: string;
+  id: string;+
   fechaHora: string;
   ubicacion: string;
   detalle: string;
@@ -47,6 +48,35 @@ export default function ModoPadres() {
     };
     fetchHijos();
   }, [rvp1]);
+
+
+  const ModoPadres = async () => {
+    if (newContactName.trim()) {
+      const rvp1 = await AsyncStorage.getItem('IdUsuario');
+      if (rvp1) {
+        try {
+          const response = await axios.post('https://centinela.onrender.com/ModoPadres', {
+            nombre_contacto: newContactName,
+            telefono_contacto: newContactPhone,
+            rvp1: rvp1
+          });
+          const newContact = {
+            id: response.data.id_contacto,
+            name: newContactName,
+            phone: newContactPhone
+          };
+          console.log('hijo asociado:', response.data);
+          setContacts(prev => [...prev, newContact]);
+        } catch (error) {
+          console.error('Error al asociar hijo:', error);
+          Alert.alert('Error', 'Datos del hijo no guardados');
+        }
+      }
+      setNewContactName('');
+      setNewContactPhone('');
+      setModalVisible(false);
+    }
+  };
 
   const agregarHijo = async () => {
     if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
