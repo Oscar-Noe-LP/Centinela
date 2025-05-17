@@ -47,7 +47,7 @@ ojoder = [33, 160, 158, 133, 153, 144]
 boca = [61, 82, 87, 178, 88, 311, 312, 317, 14, 402, 317, 291]
  
 def conectar():
-    conec = sqlite3.connect("centinela.db")
+    conec = sqlite3.connect("sentinela.db")
     conec.execute('PRAGMA foreign_keys = ON;')
     return conec
  
