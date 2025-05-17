@@ -280,7 +280,27 @@ async def agregar_contacto(request: Request):
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
-#aquí nada
+@app.post("/modo_padres")
+async def agregar_hijo(request: Request):    
+    datos = await request.json()
+    rvp1 = datos.get("rvp1")
+    rvp1_h = datos.get("rvp1_h")
+    Nombre_hijo = datos.get("Nombre_hijo")
+    Telefono_hijo = datos.get("Telefono_hijo")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
+        VALUES (?, ?, ?, ?)
+    """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
+    mod = cursor.fetchone()
+    conexion.commit()
+    conexion.close()
+    if mod:
+        return {"message": "modo padres configurado"}
+    else:
+        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
+
 @app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
     conexion = conectar()
@@ -377,22 +397,6 @@ async def notificar_contactos(rvp3: int, rvp5: int):
         return {"mensaje": "contacto notificado"}
     else:
         raise HTTPException(status_code=400, detail="Error al notificar contacto")
- 
-@app.post("/modo_padres")
-async def configurar_modo_padres(rvp1: int, rvp1_h: int, tipo_notificacion: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Modo_Padres (RVP1, RVP1_H, Tipo_de_notificación)
-        VALUES (?, ?, ?)
-    """, (rvp1, rvp1_h, tipo_notificacion))
-    mod = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if mod:
-        return {"message": "modo padres configurado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
  
 @app.get("/configuracion/{rvp1}")
 async def obtener_configuracion_usuario(rvp1: int):
