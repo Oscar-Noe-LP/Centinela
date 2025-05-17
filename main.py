@@ -289,17 +289,18 @@ async def agregar_hijo(request: Request):
     Telefono_hijo = datos.get("Telefono_hijo")
     conexion = conectar()
     cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
-        VALUES (?, ?, ?, ?)
-    """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
-    mod = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if mod:
+    try:
+        cursor.execute("""
+            INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
+            VALUES (?, ?, ?, ?)
+        """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
+        conexion.commit()
+        conexion.close()
         return {"message": "modo padres configurado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
 
 @app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
