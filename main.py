@@ -254,7 +254,7 @@ async def agregar_contacto(request: Request):
     cursor = conexion.cursor()
     try:
         cursor.execute("""
-            SELECT RVP5, Nombre FROM Contactos_de_Confianza WHERE Teléfono_Contacto = ?
+            SELECT RVP5, Nombre_Contacto FROM Contactos_de_Confianza WHERE Teléfono_Contacto = ?
         """, (telefono_contacto,))
         resultado = cursor.fetchone()
 
