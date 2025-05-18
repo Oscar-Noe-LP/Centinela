@@ -244,41 +244,111 @@ async def obtener_usuario(rvp1: int):
 @app.post("/contactos")
 async def agregar_contacto(request: Request):
     datos = await request.json()
-
     nombre_contacto = datos.get("nombre_contacto")
     telefono_contacto = datos.get("telefono_contacto")
     rvp1 = datos.get("rvp1")
-
     if not nombre_contacto or not telefono_contacto or rvp1 is None:
         raise HTTPException(status_code=400, detail="Faltan datos necesarios")
 
     conexion = conectar()
     cursor = conexion.cursor()
-
     try:
         cursor.execute("""
-            INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
-            VALUES (?, ?)
-        """, (nombre_contacto, telefono_contacto))
+            SELECT RVP5, Nombre FROM Contactos_de_Confianza WHERE Teléfono_Contacto = ?
+        """, (telefono_contacto,))
+        resultado = cursor.fetchone()
 
-        rvp5 = cursor.lastrowid
+        if resultado:
+            rvp5 = resultado[0]
+            nombre_contacto = resultado[1]
+        else:
+            cursor.execute("""
+                INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
+                VALUES (?, ?)
+            """, (nombre_contacto, telefono_contacto))
+            rvp5 = cursor.lastrowid
 
         cursor.execute("""
-            INSERT INTO Contactos_Asociados (RVP1, RVP5)
-            VALUES (?, ?)
+            SELECT 1 FROM Contactos_Asociados WHERE RVP1 = ? AND RVP5 = ?
         """, (rvp1, rvp5))
+        existe_asociacion = cursor.fetchone()
+
+        if not existe_asociacion:
+            cursor.execute("""
+                INSERT INTO Contactos_Asociados (RVP1, RVP5)
+                VALUES (?, ?)
+            """, (rvp1, rvp5))
 
         conexion.commit()
         conexion.close()
+
         return {
             "mensaje": "Contacto agregado y asociado con éxito",
             "id_contacto": rvp5,
-            "id_usuario": rvp1
+            "id_usuario": rvp1,
+            "nombre_contacto": nombre_contacto,
+            "telefono_contacto": telefono_contacto
         }
-
     except Exception as e:
         conexion.rollback()
+        conexion.close()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+
+@app.post("/borrarcontacto")
+async def eliminar_contacto_asociado(request: Request):
+    try:
+        datos = await request.json()
+        rvp1 = datos.get("rvp1")
+        rvp5 = datos.get("rvp5")
+
+        if rvp1 is None or rvp5 is None:
+            raise HTTPException(status_code=400, detail="Faltan id_usuario o id_contacto")
+
+        conn = conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM Contactos_Asociados
+            WHERE RVP1 = ? AND RVP5 = ?
+        """, (rvp1, rvp5))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Relación no encontrada.")
+
+        cursor.execute("""
+            SELECT COUNT(*) FROM Contactos_Asociados
+            WHERE RVP5 = ?
+        """, (rvp1,))
+        total = cursor.fetchone()[0]
+        if total == 0:
+            cursor.execute("""
+                DELETE FROM Contactos_de_Confianza
+                WHERE RVP5 = ?
+            """, (rvp5,))
+        conn.commit()
+        conn.close()
+        return {"mensaje": "Contacto eliminado correctamente."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/contactosuser/{rvp1}")
+async def obtener_contactos_confiables_usuario(rvp1: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT Contactos_de_Confianza.RVP5, Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
+        FROM Contactos_de_Confianza
+        JOIN Contactos_Asociados ON Contactos_Asociados.RVP5 = Contactos_de_Confianza.RVP5
+        WHERE Contactos_Asociados.RVP1 = ?
+    """, (rvp1,))
+    resultado = cursor.fetchall()
+    conexion.close()
+    return [
+        {"id_contacto": fila[0], "nombre_contacto": fila[1], "telefono_contacto": fila[2]}
+        for fila in resultado
+    ]
+
 
 @app.post("/modo_padres")
 async def agregar_hijo(request: Request):    
@@ -300,6 +370,7 @@ async def agregar_hijo(request: Request):
     except Exception as e:
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
+
 
 
 @app.put("/act_user")
@@ -413,20 +484,8 @@ async def obtener_configuracion_usuario(rvp1: int):
     conexion.close()
     return resultado
  
-@app.get("/contactos/{rvp1}")
-async def obtener_contactos_confiables_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
-        FROM Contactos_de_Confianza
-        JOIN Contactos_Asociados ON Contactos_Asociados.RVP5 = Contactos_de_Confianza.RVP5
-        WHERE Contactos_Asociados.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
- 
+
+
 @app.get("/sesion/{rvp1}")
 def obtener_sesiones_manejo(rvp1: int):
     conexion = conectar()
@@ -481,15 +540,3 @@ def obtener_modo_padre_usuario(rvp1: int):
     resultado = cursor.fetchone()
     conexion.close()
     return resultado
- 
-@app.delete("/contactos/{rvp1}/{rvp5}")
-def eliminar_contacto_confiable_usuario(rvp1: int, rvp5: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        DELETE FROM Contactos_Asociados
-        WHERE RVP1 = ? AND RVP5 = ?
-    """, (rvp1, rvp5))
-    conexion.commit()
-    conexion.close()
-    return {"mensaje": "Contacto eliminado con éxito"}

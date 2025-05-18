@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, Request
 import logging
 from fastapi.middleware.gzip import GZipMiddleware
 import cv2
@@ -166,26 +166,44 @@ async def websocket(websocket: WebSocket):
         except RuntimeError:
             logger.info("El WebSocket ya se había cerrado.")
 
-
-
 @app.post("/registro")
-async def agregar_nuevo_usuario(nombre:str, buzon: str, wlst: str, tipo_usuario: str, telefono: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Usuarios (Nombre, Buzón, wlst, Tipo_de_usuario, Teléfono)
-        VALUES (?, ?, ?, ?, ?)
-    """, (nombre, buzon, wlst, tipo_usuario, telefono))
-    usuario = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if usuario:
+async def agregar_nuevo_usuario(request: Request):
+    try:
+        data = await request.json()
+        nombre = data.get('nombre')
+        buzon = data.get('buzon')
+        wlst = data.get('wlst')
+        tipo_usuario = data.get('tipo_usuario')
+        telefono = data.get('telefono')
+ 
+        if not all([nombre, buzon, wlst, tipo_usuario, telefono]):
+            raise HTTPException(status_code=400, detail="Faltan campos")
+ 
+        conexion = conectar()
+        cursor = conexion.cursor()
+        cursor.execute("""
+            INSERT INTO Usuarios (Nombre, Buzón, wlst, Tipo_de_usuario, Teléfono)
+            VALUES (?, ?, ?, ?, ?)
+        """, (nombre, buzon, wlst, tipo_usuario, telefono))
+        conexion.commit()
+ 
         return {"mensaje": "Usuario creado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al crear el usuario")
-
+   
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Error interno en el servidor")
+    finally:
+        conexion.close()
+ 
+ 
 @app.post("/login")
-async def login_usuario(buzon: str, wlst: str):
+async def login_usuario(request: Request):
+    data = await request.json()  
+    buzon = data.get('buzon')
+    wlst = data.get('wlst')
+ 
+    if not buzon or not wlst:
+        raise HTTPException(status_code=400, detail="Faltan campos")
+ 
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -195,250 +213,130 @@ async def login_usuario(buzon: str, wlst: str):
     """, (buzon, wlst))
     user = cursor.fetchone()  
     conexion.close()
-    
+   
     if user:
         id_usuario = user[0]
         return id_usuario  
     else:
         raise HTTPException(status_code=400, detail="Error al obtener usuario")
-
-
-@app.put("/actu_user")
-async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
+ 
+ 
+@app.get("/usuario/{rvp1}")
+async def obtener_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        UPDATE Usuarios
-        SET Nombre = ?, Teléfono = ?
+        SELECT Nombre, Buzón, Tipo_de_usuario, Teléfono
+        FROM Usuarios
         WHERE RVP1 = ?
-    """, (nombre, telefono, rvp1))
-    new = cursor.fetchone()
-    conexion.commit()
+    """, (rvp1,))
+    datosuser = cursor.fetchone()
     conexion.close()
-    if new:
-        return {"mensaje": "Usuario actualizado con éxito"}
+ 
+    if datosuser:
+        return {
+            "Nombre": datosuser[0],
+            "Buzón": datosuser[1],
+            "Tipousuario": datosuser[2],
+            "Teléfono": datosuser[3]
+        }
     else:
-        raise HTTPException(status_code=400, detail="Error al actualizar usuario")
-
-@app.post("/tonos")
-async def agregar_tono_sistema(nombre_tono: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Tonos (Nombre_del_Tono)
-        VALUES (?)
-    """, (nombre_tono,))
-    tono = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if tono:
-        return {"mensaje": "tono agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar tono")
-
-@app.post("/configuracion")
-async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Configuración (RVP1, RVP8, Alertas_visuales, Tema_app)
-        VALUES (?, ?, ?, ?)
-    """, (rvp1, rvp8, alertas_visuales, tema_app))
-    conf = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if conf:
-        return {"mensaje": "configuración establecida con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar app")
+        raise HTTPException(status_code=400, detail="Error al obtener datos del usuario")
 
 @app.post("/contactos")
-async def agregar_contacto(nombre_contacto: str, telefono_contacto: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
-        VALUES (?, ?)
-    """, (nombre_contacto, telefono_contacto))
-    cont = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if cont:
-        return {"mensaje": "contacto agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar contacto")
+async def agregar_contacto(request: Request):
+    datos = await request.json()
 
-@app.post("/contactos/asociar")
-async def asociar_contacto_confiable_usuario(rvp1: int, rvp5: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Contactos_Asociados (RVP1, RVP5)
-        VALUES (?, ?)
-    """, (rvp1, rvp5))
-    asoc = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if asoc:
-        return {"mensaje": "contacto asociado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al asociar contacto")
-    
-@app.post("/sesion")
-async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio, Fecha_Fin, Hora_Fin)
-        VALUES (?, ?, ?, ?, ?)
-    """, (rvp1, fecha_inicio, hora_inicio, fecha_fin, hora_fin))
-    sesion = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if sesion:
-        return {"mensaje": "sesion registrada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar sesion")
+    nombre_contacto = datos.get("nombre_contacto")
+    telefono_contacto = datos.get("telefono_contacto")
+    rvp1 = datos.get("rvp1")
 
-@app.post("/alertas")
-async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, contenido: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Contenido)
-        VALUES (?, ?, ?, ?, ?)
-    """, (rvp2, fecha, hora, ubicacion, contenido))
-    alert = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if alert:
-        return {"mensaje": "alerta guardada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar alerta")
+    if not nombre_contacto or not telefono_contacto or rvp1 is None:
+        raise HTTPException(status_code=400, detail="Faltan datos necesarios")
 
-@app.post("/alertas/destinatarios")
-async def notificar_contactos(rvp3: int, rvp5: int):
     conexion = conectar()
     cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Destinatarios_de_Alertas (RVP3, RVP5)
-        VALUES (?, ?)
-    """, (rvp3, rvp5))
-    desti = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if desti:
-        return {"mensaje": "contacto notificado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al notificar contacto")
+
+    try:
+        cursor.execute("""
+            INSERT INTO Contactos_de_Confianza (Nombre_Contacto, Teléfono_Contacto)
+            VALUES (?, ?)
+        """, (nombre_contacto, telefono_contacto))
+
+        rvp5 = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO Contactos_Asociados (RVP1, RVP5)
+            VALUES (?, ?)
+        """, (rvp1, rvp5))
+
+        conexion.commit()
+        conexion.close()
+        return {
+            "mensaje": "Contacto agregado y asociado con éxito",
+            "id_contacto": rvp5,
+            "id_usuario": rvp1
+        }
+
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+@app.post("/borrarcontacto")
+async def eliminar_contacto_asociado(request: Request):
+    try:
+        datos = await request.json()
+        rvp1 = datos.get("rvp1")
+        rvp5 = datos.get("rvp5")
+
+        if rvp1 is None or rvp5 is None:
+            raise HTTPException(status_code=400, detail="Faltan id_usuario o id_contacto")
+
+        conn = conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM Contactos_Asociados
+            WHERE RVP1 = ? AND RVP5 = ?
+        """, (rvp1, rvp5))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Relación no encontrada.")
+
+        cursor.execute("""
+            SELECT COUNT(*) FROM Contactos_Asociados
+            WHERE RVP5 = ?
+        """, (rvp1,))
+        total = cursor.fetchone()[0]
+        if total == 0:
+            cursor.execute("""
+                DELETE FROM Contactos_de_Confianza
+                WHERE RVP5 = ?
+            """, (rvp5,))
+        conn.commit()
+        conn.close()
+        return {"mensaje": "Contacto eliminado correctamente."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/modo_padres")
-async def configurar_modo_padres(rvp1: int, rvp1_h: int, tipo_notificacion: str):
+async def agregar_hijo(request: Request):    
+    datos = await request.json()
+    rvp1 = datos.get("rvp1")
+    rvp1_h = datos.get("rvp1_h")
+    Nombre_hijo = datos.get("Nombre_hijo")
+    Telefono_hijo = datos.get("Telefono_hijo")
     conexion = conectar()
     cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Modo_Padres (RVP1, RVP1_H, Tipo_de_notificación)
-        VALUES (?, ?, ?)
-    """, (rvp1, rvp1_h, tipo_notificacion))
-    mod = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if mod:
+    try:
+        cursor.execute("""
+            INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
+            VALUES (?, ?, ?, ?)
+        """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
+        conexion.commit()
+        conexion.close()
         return {"message": "modo padres configurado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar modo padres")
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
 
-@app.get("/configuracion/{rvp1}")
-async def obtener_configuracion_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Configuración.Alertas_visuales, Configuración.Tema_app, Tonos.Nombre_del_Tono
-        FROM Configuración
-        JOIN Tonos ON Configuración.RVP8 = Tonos.RVP8
-        WHERE Configuración.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchone()
-    conexion.close()
-    return resultado
 
-@app.get("/contactos/{rvp1}")
-async def obtener_contactos_confiables_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
-        FROM Contactos_de_Confianza
-        JOIN Contactos_Asociados ON Contactos_Asociados.RVP5 = Contactos_de_Confianza.RVP5
-        WHERE Contactos_Asociados.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
-
-@app.get("/sesion/{rvp1}")
-def obtener_sesiones_manejo(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Sesiones_de_Manejo.Fecha_Inicio, Sesiones_de_Manejo.Hora_Inicio, Sesiones_de_Manejo.Fecha_Fin, Sesiones_de_Manejo.Hora_Fin
-        FROM Sesiones_de_Manejo
-        WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
-
-@app.get("/alertas/sesion/{rvp1}")
-def obtener_alertas(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Alertas_Generadas.Fecha, Alertas_Generadas.Hora, Alertas_Generadas.Ubicación, Alertas_Generadas.Contenido
-        FROM Alertas_Generadas
-        JOIN Sesiones_de_Manejo ON Sesiones_de_Manejo.RVP2 = Alertas_Generadas.RVP2
-        WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
-
-@app.get("/alertas/destinatarios/{rvp3}")
-def obtener_destinatarios_alerta(rvp3: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
-        FROM Destinatarios_de_Alertas
-        JOIN Contactos_de_Confianza ON Contactos_de_Confianza.RVP5 = Destinatarios_de_Alertas.RVP5
-        WHERE Destinatarios_de_Alertas.RVP3 = ?
-    """, (rvp3,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
-
-@app.get("/modo_padres/{rvp1}")
-def obtener_modo_padre_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Usuarios.Nombre, Modo_Padres.Tipo_de_notificación
-        FROM Modo_Padres
-        JOIN Usuarios ON Usuarios.RVP1 = Modo_Padres.RVP1_H
-        WHERE Modo_Padres.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchone()
-    conexion.close()
-    return resultado
-
-@app.delete("/contactos/{rvp1}/{rvp5}")
-def eliminar_contacto_confiable_usuario(rvp1: int, rvp5: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        DELETE FROM Contactos_Asociados
-        WHERE RVP1 = ? AND RVP5 = ?
-    """, (rvp1, rvp5))
-    conexion.commit()
-    conexion.close()
-    return {"mensaje": "Contacto eliminado con éxito"}
