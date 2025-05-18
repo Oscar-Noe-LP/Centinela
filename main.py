@@ -269,18 +269,19 @@ async def agregar_contacto(request: Request):
             rvp5 = cursor.lastrowid
 
         cursor.execute("""
-            SELECT 1 FROM Contactos_Asociados WHERE RVP1 = ? AND RVP5 = ?
+            SELECT RVP1, RVP5 FROM Contactos_Asociados WHERE RVP1 = ? AND RVP5 = ?
         """, (rvp1, rvp5))
         existe_asociacion = cursor.fetchone()
-
-        if not existe_asociacion:
+        if existe_asociacion:
+            conexion.commit()
+            conexion.close()                
+        else:
             cursor.execute("""
                 INSERT INTO Contactos_Asociados (RVP1, RVP5)
                 VALUES (?, ?)
             """, (rvp1, rvp5))
-
-        conexion.commit()
-        conexion.close()
+            conexion.commit()
+            conexion.close()
 
         return {
             "mensaje": "Contacto agregado y asociado con éxito",
