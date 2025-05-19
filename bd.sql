@@ -71,7 +71,7 @@ CREATE TABLE Modo_Padres (
     RVP1 INTEGER NOT NULL,
     RVP1_H INTEGER NOT NULL,
     Nombre_hijo TEXT NOT NULL,
-    Telefono_hijo TEXT NOT NULL,
+    Telefono_hijo TEXT UNIQUE NOT NULL,
     FOREIGN KEY (RVP1) REFERENCES Usuarios(RVP1) ON DELETE CASCADE
 );
 
