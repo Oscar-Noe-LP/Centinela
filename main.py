@@ -302,8 +302,6 @@ async def eliminar_contacto_asociado(request: Request):
         datos = await request.json()
         rvp1 = datos.get("rvp1")
         rvp5 = datos.get("rvp5")
-        print(f"rvp1 recibido: {rvp1}")
-        print(f"rvp5 recibido: {rvp5}")
 
         if rvp1 is None or rvp5 is None:
             raise HTTPException(status_code=400, detail="Faltan id_usuario o id_contacto")
@@ -333,9 +331,6 @@ async def eliminar_contacto_asociado(request: Request):
         conn.close()
         return {"mensaje": "Contacto eliminado correctamente."}
     except Exception as e:
-        print("💥 ERROR DETECTADO 💥")
-        traceback.print_exc()
-        print("💥 Fin del error 💥")
         raise HTTPException(status_code=500, detail=str(e))
 
 
