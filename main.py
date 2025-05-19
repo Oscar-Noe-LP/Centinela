@@ -320,7 +320,8 @@ async def eliminar_contacto_asociado(request: Request):
             SELECT COUNT(*) FROM Contactos_Asociados
             WHERE RVP5 = ?
         """, (rvp5,))
-        total = cursor.fetchone()[0]
+        resultado = cursor.fetchone()
+        total = resultado[0] if resultado else 0
         if total == 0:
             cursor.execute("""
                 DELETE FROM Contactos_de_Confianza
