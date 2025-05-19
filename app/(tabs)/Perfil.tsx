@@ -20,9 +20,7 @@ export default function Configuracion() {
   const [showVisualAlerts, setShowVisualAlerts] = useState(true);
   const [selectedTone, setSelectedTone] = useState('Lluvia');
   const [selectedTheme, setSelectedTheme] = useState('Claro');
-  const [contacts, setContacts] = useState<Contact[]>([
-    {id: '0', name: 'Ejemplo', phone: '0000000000' },
-  ]);
+  const [contacts, setContacts] = useState<Contact[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
@@ -37,6 +35,17 @@ export default function Configuracion() {
           setUsuario(response.data);
         } catch (error) {
           console.error('Error al obtener datos del usuario:', error);
+        }
+        try {
+          const responsecontactos = await axios.get(`https://centinela.onrender.com/contactosuser/${rvp1}`);
+          const contactosTransformados = responsecontactos.data.map((c: any) => ({
+            id: c.id_contacto,
+            name: c.nombre_contacto,
+            phone: c.telefono_contacto,
+          }));
+          setContacts(contactosTransformados);
+        } catch(error) {
+          console.error('Error al obtener contactos:', error);
         }
       }
     };
@@ -56,8 +65,8 @@ export default function Configuracion() {
           });
           const newContact = {
             id: response.data.id_contacto,
-            name: newContactName,
-            phone: newContactPhone
+            name: response.data.nombre_contacto,
+            phone: response.data.telefono_contacto
           };
           console.log('Contacto registrado:', response.data);
           setContacts(prev => [...prev, newContact]);
@@ -72,8 +81,18 @@ export default function Configuracion() {
     }
   };
 
-  const handleRemoveContact = (id: string) => {
-    setContacts(contacts.filter((contact) => contact.id !== id));
+  const borrarContacto = async (id: string) => {
+    const rvp1 = await AsyncStorage.getItem('IdUsuario');
+    try {
+      const response = await axios.post('https://centinela.onrender.com/borrarcontacto', {
+        rvp1: rvp1,
+        rvp5: id
+      });
+      console.log("Contacto eliminado:", response.data);
+      setContacts(contacts.filter((contact) => contact.id !== id));
+    } catch (error) {
+      console.log('Error al eliminar al contacto:', error);
+    }
   };
 
   const cacheBuster = useMemo(() => `?t=${Date.now()}`, []);
@@ -110,8 +129,6 @@ export default function Configuracion() {
           <Text style={[styles.inputLabel, textStyle]}>Teléfono:</Text>
           <Text style={[styles.input, textStyle]}>{usuario?.Teléfono || 'Cargando...'}</Text>
         </View>
-
-
         <View style={styles.toggleContainer}>
           <Text style={labelStyle}>Mostrar alertas visuales</Text>
           <View style={toggleOptionsStyle}>
@@ -201,15 +218,15 @@ export default function Configuracion() {
           <Text style={labelStyle}>Contactos de confianza</Text>
           <View style={styles.contactsWrapper}>
             <View style={styles.contactsList}>
-              {contacts.map((contact) => (
-                <View key={contact.name} style={contactStyle}>
+              {contacts.map((contacto) => (
+                <View key={contacto.id} style={contactStyle}>
                   <View>
-                    <Text style={[styles.contactText, textStyle]}>{contact.name}</Text>
-                    {contact.phone ? <Text style={[styles.contactPhone, textStyle]}>{contact.phone}</Text> : null}
+                    <Text style={[styles.contactText, textStyle]}>{contacto.name}</Text>
+                    {contacto.phone ? <Text style={[styles.contactPhone, textStyle]}>{contacto.phone}</Text> : null}
                   </View>
                   <TouchableOpacity
                     style={styles.removeButton}
-                    onPress={() => handleRemoveContact(contact.id)}
+                    onPress={() => borrarContacto(contacto.id)}
                   >
                     <Text style={[styles.removeButtonText, textStyle]}>Eliminar</Text>
                   </TouchableOpacity>
@@ -575,4 +592,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-//comment

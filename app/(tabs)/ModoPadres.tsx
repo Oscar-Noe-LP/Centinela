@@ -21,9 +21,7 @@ export default function ModuloPadres() {
   const [modalVisible, setModalVisible] = useState(false);
   const [nombreNuevoHijo, setNombreNuevoHijo] = useState('');
   const [telefonoNuevoHijo, setTelefonoNuevoHijo] = useState('');
-  const [listaHijos, setListaHijos] = useState<Hijo[]>([
-    { id: '0', nombre: 'ejemplo', telefono: '0000000000' },
-  ]);
+  const [listaHijos, setListaHijos] = useState<Hijo[]>([]);
 
   const listaAlertas: Alerta[] = [
     { id: '1', fechaHora: '22042025', ubicacion: 'lol', detalle: 'Bostezo', usuario: 'Arturo Barajas' },
