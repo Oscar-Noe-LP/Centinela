@@ -1,21 +1,18 @@
 import React from 'react';
 import {SafeAreaView, View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Historial() {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView>
-
                 <Text style={styles.titulo}>Historial de alertas</Text>
-
-                <View style={styles.tabla}>
-                
+                <View style={styles.tabla}>                
                     <View style={styles.filaEncabezado}>
                         <Text style={styles.celdaEncabezado}>Fecha/hora</Text>
                         <Text style={styles.celdaEncabezado}>Ubicación</Text>
                         <Text style={styles.celdaEncabezado}>Detalles de alerta</Text>
                     </View>
-            
                     <View style={styles.fila}>
                         <Text style={styles.celda}>23/04/2025</Text>
                         <Text style={styles.celda}>lat</Text>
