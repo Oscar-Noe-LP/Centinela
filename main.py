@@ -368,7 +368,11 @@ async def agregar_hijo(request: Request):
         """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
         conexion.commit()
         conexion.close()
-        return {"message": "modo padres configurado"}
+        return {"message": "modo padres configurado",
+                "rvp1_h:": rvp1_h,
+                "nombrehijo": Nombre_hijo,
+                "telhijo": Telefono_hijo
+                }
     except Exception as e:
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
