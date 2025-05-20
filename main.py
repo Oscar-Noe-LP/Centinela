@@ -359,6 +359,7 @@ async def agregar_hijo(request: Request):
     rvp1_h = datos.get("rvp1_h")
     Nombre_hijo = datos.get("Nombre_hijo")
     Telefono_hijo = datos.get("Telefono_hijo")
+    print(rvp1_h)
     conexion = conectar()
     cursor = conexion.cursor()
     try:
@@ -369,7 +370,7 @@ async def agregar_hijo(request: Request):
         conexion.commit()
         conexion.close()
         return {"message": "modo padres configurado",
-                "rvp1_h:": rvp1_h,
+                "rvp1_h": rvp1_h,
                 "nombrehijo": Nombre_hijo,
                 "telhijo": Telefono_hijo
                 }
