@@ -379,6 +379,78 @@ async def agregar_hijo(request: Request):
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
 
+@app.post("/alertas")
+async def generar_alerta(request: Request):
+    data = await request.json()
+    rvp2 = data.get("rvp2")
+    fecha = data.get("fecha")
+    hora = data.get("hora")
+    ubicacion = data.get("ubicacion")
+    Tipo = data.get("Tipo")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Tipo)
+            VALUES (?, ?, ?, ?, ?)
+        """, (rvp2, fecha, hora, ubicacion, Tipo))
+        rvp3 = cursor.lastrowid
+
+        cursor.execute("""
+                INSERT INTO Alertas_por_sesion (RVP2, RVP3)
+                VALUES (?, ?)               
+            """, (rvp2, rvp3))
+
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "alerta guardada"}
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")     
+
+
+@app.post("/sesiones")
+async def registrar_sesion(request: Request):
+    data = await request.json()
+    rvp1 = data.get("rvp1")
+    fecha_inicio = data.geet("fecha_inicio")
+    hora_inicio = data.get("hora_inicio")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio)
+            VALUES (?, ?, ?)
+        """, (rvp1, fecha_inicio, hora_inicio))
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "sesion registrada"}
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+@app.post("/sesion")
+async def cerrar_sesion(request: Request):
+    data = await request.json()
+    rvp1 = data.get("rvp1")
+    fecha_fin = data.geet("fecha_fin")
+    hora_fin = data.get("hora_fin")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            UPDATE Sesiones_de_Manejo
+            SET Fecha_fin = ?, Hora_fin = ?
+            WHERE RVP1 = ? AMD Fecha_fin IS NULL
+        """, (rvp1, fecha_fin, hora_fin))
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "sesion registrada"}
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+
 
 @app.put("/act_user")
 async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
@@ -429,37 +501,7 @@ async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str
     else:
         raise HTTPException(status_code=400, detail="Error al configurar app")
     
-@app.post("/sesion")
-async def registrar_sesion_manejo_usuario(rvp1: int, fecha_inicio: str, hora_inicio: str, fecha_fin: str, hora_fin: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio, Fecha_Fin, Hora_Fin)
-        VALUES (?, ?, ?, ?, ?)
-    """, (rvp1, fecha_inicio, hora_inicio, fecha_fin, hora_fin))
-    sesion = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if sesion:
-        return {"mensaje": "sesion registrada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar sesion")
  
-@app.post("/alertas")
-async def generar_alerta(rvp2: int, fecha: str, hora: str, ubicacion: str, contenido: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Contenido)
-        VALUES (?, ?, ?, ?, ?)
-    """, (rvp2, fecha, hora, ubicacion, contenido))
-    alert = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if alert:
-        return {"mensaje": "alerta guardada"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al registrar alerta")
  
 @app.post("/alertas/destinatarios")
 async def notificar_contactos(rvp3: int, rvp5: int):

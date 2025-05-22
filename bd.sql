@@ -43,19 +43,24 @@ CREATE TABLE Sesiones_de_Manejo (
     RVP1 INTEGER NOT NULL,
     Fecha_Inicio DATE NOT NULL,
     Hora_Inicio TIME NOT NULL,
-    Fecha_Fin DATE NOT NULL,
-    Hora_Fin TIME NOT NULL,
+    Fecha_Fin DATE,
+    Hora_Fin TIME,
     FOREIGN KEY (RVP1) REFERENCES Usuarios(RVP1) ON DELETE CASCADE
+);
+
+CREATE TABLE Alertas_por_sesion (
+    RVP2 INTEGER NOT NULL,
+    RVP3 INTEGER NOT NULL,
+    FOREIGN KEY (RVP2) REFERENCES Sesiones_de_Manejo(RVP2) ON DELETE CASCADE,
+    FOREIGN KEY (RVP3) REFERENCES Alertas_Generadas(RVP3) ON DELETE CASCADE
 );
 
 CREATE TABLE Alertas_Generadas (
     RVP3 INTEGER PRIMARY KEY,
-    RVP2 INTEGER NOT NULL,
     Fecha DATE NOT NULL,
     Hora TIME NOT NULL,
     Ubicación TEXT NOT NULL,
-    Contenido TEXT NOT NULL,
-    FOREIGN KEY (RVP2) REFERENCES Sesiones_de_Manejo(RVP2) ON DELETE CASCADE
+    Tipo TEXT NOT NULL
 );
 
 CREATE TABLE Destinatarios_de_Alertas (
@@ -73,5 +78,6 @@ CREATE TABLE Modo_Padres (
     Nombre_hijo TEXT NOT NULL,
     Telefono_hijo TEXT UNIQUE NOT NULL,
     FOREIGN KEY (RVP1) REFERENCES Usuarios(RVP1) ON DELETE CASCADE
+    FOREIGN KEY (RVP1_H) REFERENCES Usuarios(RVP1) ON DELETE CASCADE
 );
 
