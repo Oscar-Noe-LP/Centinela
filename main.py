@@ -391,9 +391,9 @@ async def generar_alerta(request: Request):
     cursor = conexion.cursor()
     try:
         cursor.execute("""
-            INSERT INTO Alertas_Generadas (RVP2, Fecha, Hora, Ubicación, Tipo)
-            VALUES (?, ?, ?, ?, ?)
-        """, (rvp2, fecha, hora, ubicacion, Tipo))
+            INSERT INTO Alertas_Generadas (Fecha, Hora, Ubicación, Tipo)
+            VALUES (?, ?, ?, ?)
+        """, (fecha, hora, ubicacion, Tipo))
         rvp3 = cursor.lastrowid
 
         cursor.execute("""
@@ -432,7 +432,7 @@ async def registrar_sesion(request: Request):
 @app.post("/sesion")
 async def cerrar_sesion(request: Request):
     data = await request.json()
-    rvp1 = data.get("rvp1")
+    rvp2 = data.get("rvp2")
     fecha_fin = data.get("fecha_fin")
     hora_fin = data.get("hora_fin")
     conexion = conectar()
@@ -441,8 +441,8 @@ async def cerrar_sesion(request: Request):
         cursor.execute("""
             UPDATE Sesiones_de_Manejo
             SET Fecha_fin = ?, Hora_fin = ?
-            WHERE RVP1 = ? AMD Fecha_fin IS NULL
-        """, (rvp1, fecha_fin, hora_fin))
+            WHERE RVP2 = ? AND Fecha_fin IS NULL
+        """, (rvp2, fecha_fin, hora_fin))
         conexion.commit()
         conexion.close()
         return {"mensaje": "sesion registrada"}
