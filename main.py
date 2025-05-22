@@ -408,7 +408,9 @@ async def generar_alerta(request: Request):
                 "tipo": tipo}
     except Exception as e:
         conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {e}")     
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {e}") 
+          
 
 
 @app.post("/sesiones")
