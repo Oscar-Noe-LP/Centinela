@@ -403,7 +403,9 @@ async def generar_alerta(request: Request):
 
         conexion.commit()
         conexion.close()
-        return {"mensaje": "alerta guardada"}
+        return {"mensaje": "alerta guardada",
+                "rvp3": rvp3,
+                "tipo": tipo}
     except Exception as e:
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")     
