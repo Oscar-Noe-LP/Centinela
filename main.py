@@ -433,7 +433,7 @@ async def registrar_sesion(request: Request):
 async def cerrar_sesion(request: Request):
     data = await request.json()
     rvp1 = data.get("rvp1")
-    fecha_fin = data.geet("fecha_fin")
+    fecha_fin = data.get("fecha_fin")
     hora_fin = data.get("hora_fin")
     conexion = conectar()
     cursor = conexion.cursor()
