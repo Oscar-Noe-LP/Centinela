@@ -413,7 +413,7 @@ async def generar_alerta(request: Request):
 async def registrar_sesion(request: Request):
     data = await request.json()
     rvp1 = data.get("rvp1")
-    fecha_inicio = data.geet("fecha_inicio")
+    fecha_inicio = data.get("fecha_inicio")
     hora_inicio = data.get("hora_inicio")
     conexion = conectar()
     cursor = conexion.cursor()
