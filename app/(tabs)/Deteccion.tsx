@@ -4,7 +4,10 @@ import {CameraView, useCameraPermissions, CameraMode, CameraType,} from "expo-ca
 import * as ImageManipulator from 'expo-image-manipulator';
 import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-native-reanimated";
 import {useIsFocused} from '@react-navigation/native';
-
+import axios from "axios";
+import * as Location from "expo-location";
+import { Audio } from 'expo-av';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Linkapi = "wss://centinela.onrender.com/ws/deteccion"; 
 
@@ -19,13 +22,22 @@ export default function Deteccion() {
   const estaEnfocada = useIsFocused();
   const [MostrarCamara, setMostrarCamara] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
-
+  const [contadorBostezo, setContadorBostezo] = useState(0);
+  const [contadorFatiga, setContadorFatiga] = useState(0);
+  const [alertaGuardada, setAlertaGuardada] = useState(false);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [sound, setSound] = useState<Audio.Sound>();
+  const [SesionActual, setSesionActual] = useState<number | null>(null);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
     opacity: opacity.value,
   }));
+  const COOLDOWN = 10000;
+  const ahora = () => new Date().getTime();
+  const ultimosAlertas = useRef({ Bostezo: 0, Fatiga: 0 });
+
 
   useEffect(() => {
     if (!permission) requestPermission();
@@ -34,14 +46,17 @@ export default function Deteccion() {
   useEffect(() => {
     if (estaEnfocada) {
       setMostrarCamara(true);
+      crearSesion();
       conectarWebSocket();
       const interval = setInterval(() => {
         tomarYPredecir();
       }, 500); 
   
-      return () => 
+      return () => {
         clearInterval(interval);
+        cerrarSesion();
         desconectarWebSocket();
+      };
     }
     else {
       setMostrarCamara(false);
@@ -51,24 +66,115 @@ export default function Deteccion() {
   }, [estaEnfocada]);
 
 
+  const crearSesion = async () => {
+    try {
+      const rvp1 = await AsyncStorage.getItem("IdUsuario");
+      const respuesta = await axios.post("https://centinela.onrender.com/sesiones", {
+        rvp1: rvp1,
+        fecha_inicio: new Date().toISOString().split("T")[0],
+        hora_inicio: new Date().toLocaleTimeString('es-MX')
+      });
+      console.log("Sesión creada:", respuesta.data.rvp2);
+      setSesionActual(respuesta.data.rvp2);
+    } catch (error) {
+      console.error("Error al crear sesión:", error);
+    }
+  };
+
+  const cerrarSesion = async () => {
+    try {
+      const respuesta = await axios.post("https://centinela.onrender.com/sesion", {
+        rvp2: SesionActual,
+        fecha_fin: new Date().toISOString().split("T")[0],
+        hora_fin: new Date().toLocaleTimeString('es-MX')
+      });
+      console.log("Sesión cerrada", respuesta.data);
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
+  const obtenerUbicacion = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.error("Permiso de ubicación denegado");
+        return null;
+      }
+      const Ubicacion = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = Ubicacion.coords;
+      return `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    } catch (error) {
+      console.error("Error al obtener ubicación:", error);
+      return null;
+    }
+  };
+
+  const guardarAlerta = async (tipo: string) => {
+  if (SesionActual === null) {
+    console.log("No se puede guardar alerta: sesión aún no inicializada");
+    return;
+  }
+  try {
+    const Ubicacion = await obtenerUbicacion();
+    const respuesta = await axios.post("https://centinela.onrender.com/alertas", {
+      rvp2: SesionActual,
+      fecha: new Date().toISOString().split("T")[0],
+      hora: new Date().toLocaleTimeString('es-MX'),
+      ubicacion: Ubicacion,
+      tipo: tipo,
+    });
+    console.log("Alerta guardada:", respuesta.data);
+    } catch (error) {
+      console.error("Error al guardar alerta:", error);
+    }
+  };
+
+  const SonarAlerta = async () => {
+    const { sound } = await Audio.Sound.createAsync(
+      require('../../assets/audios/alerta.mp3')
+    );
+    setSound(sound);
+    await sound.playAsync();
+  };
+
   const conectarWebSocket = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       console.log("WebSocket ya está abierto");
-      return; // Ya está conectado, no hacer nada más
+      return;
     }
-
     socketRef.current = new WebSocket(Linkapi);
-
     socketRef.current.onopen = () => {
       console.log("WebSocket conectado");
     };
-
     socketRef.current.onmessage = (message) => {
       const data = JSON.parse(message.data);
       if (data.error) {
         console.log("Error del servidor:", data.error);
       } else {
         const { EAR, MAR, Bostezo, Fatiga } = data;
+        setContadorBostezo((prev) => {
+          const nuevo = Bostezo ? prev + 1 : 0;
+          if (nuevo === 3 && ahora() - ultimosAlertas.current.Bostezo > COOLDOWN) {
+            guardarAlerta("Bostezo");
+            ultimosAlertas.current.Bostezo = ahora();
+          }
+          return nuevo;
+        });
+
+        setContadorFatiga((prev) => {
+          const nuevo = Fatiga ? prev + 1 : 0;
+
+
+        if (nuevo === 3 && ahora() - ultimosAlertas.current.Fatiga > COOLDOWN) {
+          SonarAlerta();
+          guardarAlerta("Fatiga");
+          ultimosAlertas.current.Fatiga = ahora();
+        }
+
+          return nuevo;
+        });
+
         setPrediction({
           EAR: EAR?.toFixed(2),
           MAR: MAR?.toFixed(2),
@@ -76,8 +182,7 @@ export default function Deteccion() {
           Fatiga: Fatiga ? "Sí" : "No",
         });
       }
-    };
-
+    };  
     socketRef.current.onerror = (error) => {
       console.error("WebSocket error:", error);
     };
