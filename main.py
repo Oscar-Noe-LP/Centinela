@@ -386,14 +386,14 @@ async def generar_alerta(request: Request):
     fecha = data.get("fecha")
     hora = data.get("hora")
     ubicacion = data.get("ubicacion")
-    Tipo = data.get("Tipo")
+    tipo = data.get("tipo")
     conexion = conectar()
     cursor = conexion.cursor()
     try:
         cursor.execute("""
             INSERT INTO Alertas_Generadas (Fecha, Hora, Ubicación, Tipo)
             VALUES (?, ?, ?, ?)
-        """, (fecha, hora, ubicacion, Tipo))
+        """, (fecha, hora, ubicacion, tipo))
         rvp3 = cursor.lastrowid
 
         cursor.execute("""
@@ -422,9 +422,11 @@ async def registrar_sesion(request: Request):
             INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio)
             VALUES (?, ?, ?)
         """, (rvp1, fecha_inicio, hora_inicio))
+        rvp2 = cursor.lastrowid
         conexion.commit()
         conexion.close()
-        return {"mensaje": "sesion registrada"}
+        return {"mensaje": "sesion registrada",
+                "rvp2": rvp2}
     except Exception as e:
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
