@@ -1,64 +1,83 @@
-import React from 'react';
-import {SafeAreaView, View, Text, StyleSheet, ScrollView, TextInput } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
+import React, {useState} from 'react';
+import {SafeAreaView, View, Text, StyleSheet, ScrollView, TextInput, FlatList } from 'react-native';
+ 
+interface Alerta {
+  id: string;
+  fecha: string;
+  hora: string;
+  ubicacion: string;
+  detalle: string;
+}
+ 
 export default function Historial() {
+    //const [alertas, setAlertas] = useState<Alerta[]>([]);
+ 
+    const alertas: Alerta[] = [
+        { id: '1', fecha: '22042025', hora: 'afxad', ubicacion: 'lol', detalle: 'Bostezo'},
+        { id: '2', fecha: '23042025', hora: 'afxad', ubicacion: 'lol', detalle: 'Fatiga visual'},
+        { id: '3', fecha: '230425', hora: 'afxad', ubicacion: 'saa', detalle: 'Fatiga visual'},
+    ];
+ 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView>
-                <Text style={styles.titulo}>Historial de alertas</Text>
-                <View style={styles.tabla}>                
+            <FlatList
+                data={alertas}
+                keyExtractor={(item) => item.id}
+                ListHeaderComponent={
+                  <>
+                  <Text style={styles.titulo}>Historial de alertas</Text>
+                  <View style={styles.tabla}>                
                     <View style={styles.filaEncabezado}>
-                        <Text style={styles.celdaEncabezado}>Fecha/hora</Text>
+                        <Text style={styles.celdaEncabezado}>Fecha</Text>
+                        <Text style={styles.celdaEncabezado}>Hora</Text>
                         <Text style={styles.celdaEncabezado}>Ubicación</Text>
-                        <Text style={styles.celdaEncabezado}>Detalles de alerta</Text>
+                        <Text style={styles.celdaEncabezado}>Detalles</Text>
                     </View>
+                  </View>
+                  </>
+                }
+                renderItem={({ item }) => (
                     <View style={styles.fila}>
-                        <Text style={styles.celda}>23/04/2025</Text>
-                        <Text style={styles.celda}>lat</Text>
-                        <Text style={styles.celda}>Bostezo</Text>
+                        <Text style={styles.celda}>{item.fecha}</Text>
+                        <Text style={styles.celda}>{item.hora}</Text>
+                        <Text style={styles.celda}>{item.ubicacion}</Text>
+                        <Text style={styles.celda}>{item.detalle}</Text>
                     </View>
-                    <View style={styles.fila}>
-                        <Text style={styles.celda}>23/04/2025</Text>
-                        <Text style={styles.celda}>lat</Text>
-                        <Text style={styles.celda}>Fatiga visual</Text>
+                )}
+                ListFooterComponent={
+                  <>
+                    <View style={styles.habitosContainer}>
+                        <Text style={styles.subtitulo}>Tus hábitos de manejo</Text>
+                        <View style={styles.habitos}>
+                            <TextInput
+                                style={styles.habitoInput}
+                                value="Sesión: 23/04/2025 10:30 AM"
+                                editable={false}
+                            />
+                            <TextInput
+                                style={styles.habitoInput}
+                                value="Duración: 45 minutos"
+                                editable={false}
+                            />
+                            <TextInput
+                                style={styles.habitoInput}
+                                value="Total de alertas: 3"
+                                editable={false}
+                            />
+                            <TextInput
+                                style={styles.habitoInput}
+                                value="Última sesión: 22/04/2025"
+                                editable={false}
+                            />
+                        </View>
                     </View>
-                    <View style={styles.fila}>
-                        <Text style={styles.celda}>23/04/2025</Text>
-                        <Text style={styles.celda}>lat</Text>
-                        <Text style={styles.celda}>Fatiga visual</Text>
-                    </View>
-                </View>
-                <View style={styles.habitosContainer}>
-                    <Text style={styles.subtitulo}>Tus hábitos de manejo</Text>
-                    <View style={styles.habitos}>
-                        <TextInput
-                            style={styles.habitoInput}
-                            value="Sesión: 23/04/2025 10:30 AM"
-                            editable={false}
-                        />
-                        <TextInput
-                            style={styles.habitoInput}
-                            value="Duración: 45 minutos"
-                            editable={false}
-                        />
-                        <TextInput
-                            style={styles.habitoInput}
-                            value="Total de alertas: 3"
-                            editable={false}
-                        />
-                        <TextInput
-                            style={styles.habitoInput}
-                            value="Última sesión: 22/04/2025"
-                            editable={false}
-                        />
-                    </View>
-                </View>
-            </ScrollView>
+                  </>
+                }
+            />
         </SafeAreaView>
     );
 }
-
+ 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -73,50 +92,37 @@ const styles = StyleSheet.create({
         marginTop: 20
     },
     tabla: {
-        backgroundColor: 'white',
-        borderRadius: 8,
-        marginBottom: 20,
         borderWidth: 1,
-        borderColor: '#E0E0E0',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.1,
-        shadowRadius: 2,
-        elevation: 1,
+        borderColor: '#1ba098',
     },
     filaEncabezado: {
         flexDirection: 'row',
-        backgroundColor: '#00A19D',
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderTopLeftRadius: 8,
-        borderTopRightRadius: 8,
-    },
-    celdaEncabezado: {
-        flex: 1,
-        color: 'white',
-        fontWeight: 'bold',
-        textAlign: 'center',
-        fontSize: 12,
+        backgroundColor: '#1ba098',
     },
     fila: {
         flexDirection: 'row',
-        paddingVertical: 8,
-        paddingHorizontal: 10,
-        borderBottomWidth: 1,
-        borderBottomColor: '#1ba098',
-        backgroundColor: 'white',
+        borderTopWidth: 1,
+        borderColor: '#1ba098',
+    },
+    celdaEncabezado: {
+        flex: 1,
+        padding: 8,
+        fontWeight: 'bold',
+        textAlign: 'center',
     },
     celda: {
+        borderWidth:1,
+        borderColor: '#1ba098',
         flex: 1,
-        color: '#000',
+        padding: 8,
         textAlign: 'center',
-        fontSize: 12,
-    },
+
+},    
     habitosContainer: {
         backgroundColor: '#00A19D',
         borderRadius: 8,
-        padding: 15, 
+        marginTop: '10%',
+        padding: 15,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
@@ -127,20 +133,20 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: 'white',
-        marginBottom: 15, 
+        marginBottom: 15,
     },
     habitos: {
         backgroundColor: 'white',
         borderRadius: 8,
-        padding: 15, 
-        paddingBottom: 5, 
+        padding: 15,
+        paddingBottom: 5,
     },
     habitoInput: {
         backgroundColor: 'white',
         borderRadius: 6,
         paddingVertical: 8,
         paddingHorizontal: 10,
-        marginBottom: 15, 
+        marginBottom: 15,
         fontSize: 14,
         color: '#333',
         borderWidth: 1,
