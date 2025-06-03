@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, HTTPException, Request
+from fastapi import FastAPI, WebSocket, HTTPException, Request, File, UploadFile
 import logging
 from fastapi.middleware.gzip import GZipMiddleware
 import cv2
@@ -10,7 +10,11 @@ import numpy as np
 from fastapi.middleware.cors import CORSMiddleware
 import base64
 import traceback
- 
+import os 
+import shutil
+import os
+import uuid
+
 # Configuración de logs
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
@@ -119,8 +123,32 @@ def procesar_frame(frame):
             return {"error": "Error calculando métricas", "detalle": str(e)}
    
     return {"Error": "No se detectó rostro"}
-   
- 
+
+
+@app.post("/promedio")   
+async def calcular_promedio(file: UploadFile = File(...)):
+    try:
+        extension = file.filename.split(".")[-1]
+        filename = f"temp_{uuid.uuid4().hex[:8]}.{extension}"
+        filepath = os.path.join("temp_imgs", filename)
+
+        os.makedirs("temp_imgs", exist_ok=True) 
+
+        with open(filepath, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        frame = cv2.imread(filepath)
+        if frame is None:
+            return {"error": "No se pudo leer la imagen"}
+        resultado = procesar_frame(frame)
+        os.remove(filepath)
+        return resultado
+
+    except Exception as e:
+        traceback.print_exc()
+        return {"error": "Hubo un problema al procesar la imagen", "detalle": str(e)}
+
+
 @app.websocket("/ws/deteccion")
 async def websocket(websocket: WebSocket):
     await websocket.accept()
