@@ -23,12 +23,11 @@ app = FastAPI()
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=["*"], 
     allow_credentials=True,
-    allow_methods=["*"],  
+    allow_methods=["*"],
     allow_headers=["*"],
-)
- 
+) 
  
 @app.get("/")
 def inicio():
@@ -559,21 +558,17 @@ async def agregar_hijo(request: Request):
         """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
 
         conexion.commit()
+        conexion.close()
         return {
             "message": "modo padres configurado",
             "rvp1_h": rvp1_h,
             "nombrehijo": Nombre_hijo,
             "telhijo": Telefono_hijo
         }
-
-    except HTTPException as he:
-        raise he
     except Exception as e:
         conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
-    finally:
         conexion.close()
-
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
  
 @app.get("/modopadres/{rvp1}")
 def obtener_modo_padre_usuario(rvp1: int):
