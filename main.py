@@ -567,8 +567,11 @@ async def agregar_hijo(request: Request):
         }
     except Exception as e:
         conexion.rollback()
+        traceback_str = traceback.format_exc()
+        print("🚨 ERROR COMPLETO:\n", traceback_str)
         conexion.close()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
+
  
 @app.get("/modopadres/{rvp1}")
 def obtener_modo_padre_usuario(rvp1: int):
