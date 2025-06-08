@@ -411,7 +411,7 @@ async def obtener_habitos_usuario(rvp1: int):
     cursor.execute("""
         SELECT 
             Usuarios.RVP1 AS id_usuario,
-            COUNT(DISTINCT Sesiones_de_Manejo.RVP2) AS total_sesiones,
+            COUNT(Sesiones_de_Manejo.RVP2) AS total_sesiones,
             COUNT(Alertas_Generadas.RVP3) AS total_alertas,
             Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio AS inicio_ultima_sesion,
             ROUND((julianday(Sesiones_de_Manejo.Fecha_Fin || ' ' || Sesiones_de_Manejo.Hora_Fin) - 
