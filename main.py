@@ -438,10 +438,10 @@ async def obtener_habitos_usuario(rvp1: int):
     conexion.close()
     if fila:
         return {
-            "total_sesiones": fila[1],
-            "total_alertas": fila[2],
-            "inicio_ultima_sesion": fila[3],
-            "duracion_ultima_sesion_en_minutos": fila[4]
+            "totalsesiones": fila[1],
+            "totalalertas": fila[2],
+            "ultimasesion": fila[3],
+            "duracion": fila[4]
         }
     else:
         return {"mensaje": "No se encontró información para este usuario"}
