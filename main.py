@@ -454,6 +454,84 @@ async def obtener_habitos_usuario(rvp1: int):
         }
 
 
+@app.post("/alertas")
+async def generar_alerta(request: Request):
+    data = await request.json()
+    rvp2 = data.get("rvp2")
+    fecha = data.get("fecha")
+    hora = data.get("hora")
+    ubicacion = data.get("ubicacion")
+    tipo = data.get("tipo")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO Alertas_Generadas (Fecha, Hora, Ubicación, Tipo)
+            VALUES (?, ?, ?, ?)
+        """, (fecha, hora, ubicacion, tipo))
+        rvp3 = cursor.lastrowid
+
+        cursor.execute("""
+                INSERT INTO Alertas_por_sesion (RVP2, RVP3)
+                VALUES (?, ?)               
+            """, (rvp2, rvp3))
+
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "alerta guardada",
+                "rvp3": rvp3,
+                "tipo": tipo}
+    except Exception as e:
+        conexion.rollback()
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Error: {e}") 
+          
+
+@app.post("/sesiones")
+async def registrar_sesion(request: Request):
+    data = await request.json()
+    rvp1 = data.get("rvp1")
+    fecha_inicio = data.get("fecha_inicio")
+    hora_inicio = data.get("hora_inicio")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio)
+            VALUES (?, ?, ?)
+        """, (rvp1, fecha_inicio, hora_inicio))
+        rvp2 = cursor.lastrowid
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "sesion registrada",
+                "rvp2": rvp2}
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+
+@app.post("/sesion")
+async def cerrar_sesion(request: Request):
+    data = await request.json()
+    rvp2 = data.get("rvp2")
+    fecha_fin = data.get("fecha_fin")
+    hora_fin = data.get("hora_fin")
+    conexion = conectar()
+    cursor = conexion.cursor()
+    try:
+        cursor.execute("""
+            UPDATE Sesiones_de_Manejo
+            SET Fecha_fin = ?, Hora_fin = ?
+            WHERE RVP2 = ? AND Fecha_fin IS NULL
+        """, (rvp2, fecha_fin, hora_fin))
+        conexion.commit()
+        conexion.close()
+        return {"mensaje": "sesion registrada"}
+    except Exception as e:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error: {e}")
+
+
 @app.post("/modo_padres")
 async def agregar_hijo(request: Request):    
     datos = await request.json()
@@ -496,174 +574,8 @@ async def agregar_hijo(request: Request):
     finally:
         conexion.close()
 
-@app.post("/alertas")
-async def generar_alerta(request: Request):
-    data = await request.json()
-    rvp2 = data.get("rvp2")
-    fecha = data.get("fecha")
-    hora = data.get("hora")
-    ubicacion = data.get("ubicacion")
-    tipo = data.get("tipo")
-    conexion = conectar()
-    cursor = conexion.cursor()
-    try:
-        cursor.execute("""
-            INSERT INTO Alertas_Generadas (Fecha, Hora, Ubicación, Tipo)
-            VALUES (?, ?, ?, ?)
-        """, (fecha, hora, ubicacion, tipo))
-        rvp3 = cursor.lastrowid
-
-        cursor.execute("""
-                INSERT INTO Alertas_por_sesion (RVP2, RVP3)
-                VALUES (?, ?)               
-            """, (rvp2, rvp3))
-
-        conexion.commit()
-        conexion.close()
-        return {"mensaje": "alerta guardada",
-                "rvp3": rvp3,
-                "tipo": tipo}
-    except Exception as e:
-        conexion.rollback()
-        traceback.print_exc()
-        raise HTTPException(status_code=500, detail=f"Error: {e}") 
-          
-
-
-@app.post("/sesiones")
-async def registrar_sesion(request: Request):
-    data = await request.json()
-    rvp1 = data.get("rvp1")
-    fecha_inicio = data.get("fecha_inicio")
-    hora_inicio = data.get("hora_inicio")
-    conexion = conectar()
-    cursor = conexion.cursor()
-    try:
-        cursor.execute("""
-            INSERT INTO Sesiones_de_Manejo (RVP1, Fecha_Inicio, Hora_Inicio)
-            VALUES (?, ?, ?)
-        """, (rvp1, fecha_inicio, hora_inicio))
-        rvp2 = cursor.lastrowid
-        conexion.commit()
-        conexion.close()
-        return {"mensaje": "sesion registrada",
-                "rvp2": rvp2}
-    except Exception as e:
-        conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
-
-@app.post("/sesion")
-async def cerrar_sesion(request: Request):
-    data = await request.json()
-    rvp2 = data.get("rvp2")
-    fecha_fin = data.get("fecha_fin")
-    hora_fin = data.get("hora_fin")
-    conexion = conectar()
-    cursor = conexion.cursor()
-    try:
-        cursor.execute("""
-            UPDATE Sesiones_de_Manejo
-            SET Fecha_fin = ?, Hora_fin = ?
-            WHERE RVP2 = ? AND Fecha_fin IS NULL
-        """, (rvp2, fecha_fin, hora_fin))
-        conexion.commit()
-        conexion.close()
-        return {"mensaje": "sesion registrada"}
-    except Exception as e:
-        conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error: {e}")
-
-
-
-
-
-
-
-
-
-@app.post("/tonos")
-async def agregar_tono_sistema(nombre_tono: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Tonos (Nombre_del_Tono)
-        VALUES (?)
-    """, (nombre_tono,))
-    tono = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if tono:
-        return {"mensaje": "tono agregado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al agregar tono")
-
-
-@app.post("/configuracion")
-async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Configuración (RVP1, RVP8, Alertas_visuales, Tema_app)
-        VALUES (?, ?, ?, ?)
-    """, (rvp1, rvp8, alertas_visuales, tema_app))
-    conf = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if conf:
-        return {"mensaje": "configuración establecida con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al configurar app")
-    
-
-@app.post("/alertas/destinatarios")
-async def notificar_contactos(rvp3: int, rvp5: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        INSERT INTO Destinatarios_de_Alertas (RVP3, RVP5)
-        VALUES (?, ?)
-    """, (rvp3, rvp5))
-    desti = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if desti:
-        return {"mensaje": "contacto notificado"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al notificar contacto")
  
-@app.get("/configuracion/{rvp1}")
-async def obtener_configuracion_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Configuración.Alertas_visuales, Configuración.Tema_app, Tonos.Nombre_del_Tono
-        FROM Configuración
-        JOIN Tonos ON Configuración.RVP8 = Tonos.RVP8
-        WHERE Configuración.RVP1 = ?
-    """, (rvp1,))
-    resultado = cursor.fetchone()
-    conexion.close()
-    return resultado
- 
-
-
- 
- 
-@app.get("/alertas/destinatarios/{rvp3}")
-def obtener_destinatarios_alerta(rvp3: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Contactos_de_Confianza.Nombre_Contacto, Contactos_de_Confianza.Teléfono_Contacto
-        FROM Destinatarios_de_Alertas
-        JOIN Contactos_de_Confianza ON Contactos_de_Confianza.RVP5 = Destinatarios_de_Alertas.RVP5
-        WHERE Destinatarios_de_Alertas.RVP3 = ?
-    """, (rvp3,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
- 
-@app.get("/modo_padres/{rvp1}")
+@app.get("/modopadres/{rvp1}")
 def obtener_modo_padre_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
