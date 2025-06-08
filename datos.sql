@@ -41,17 +41,17 @@ INSERT INTO Sesiones_de_Manejo (RVP2, RVP1, Fecha_Inicio, Hora_Inicio, Fecha_Fin
 -- Alertas generadas
 INSERT INTO Alertas_Generadas (RVP3, Fecha, Hora, Ubicación, Tipo) VALUES
 (1, '2025-06-01', '08:05', 'CDMX', 'Fatiga'),
-(2, '2025-06-01', '08:15', 'CDMX', 'Distracción'),
-(3, '2025-06-01', '08:25', 'CDMX', 'Cierre de ojos'),
+(2, '2025-06-01', '08:15', 'CDMX', 'Fatiga'),
+(3, '2025-06-01', '08:25', 'CDMX', 'Bostezo'),
 (4, '2025-06-02', '09:20', 'CDMX', 'Fatiga'),
 (5, '2025-06-02', '09:30', 'CDMX', 'Bostezo'),
-(6, '2025-06-02', '09:40', 'CDMX', 'Pérdida de enfoque'),
-(7, '2025-06-01', '10:10', 'GDL', 'Cierre de ojos'),
+(6, '2025-06-02', '09:40', 'CDMX', 'Bostezo'),
+(7, '2025-06-01', '10:10', 'GDL', 'Fatiga'),
 (8, '2025-06-01', '10:20', 'GDL', 'Fatiga'),
-(9, '2025-06-01', '10:35', 'GDL', 'Distracción'),
+(9, '2025-06-01', '10:35', 'GDL', 'Fatiga'),
 (10, '2025-06-03', '11:25', 'GDL', 'Bostezo'),
-(11, '2025-06-03', '11:35', 'GDL', 'Cierre de ojos'),
-(12, '2025-06-03', '11:45', 'GDL', 'Somnolencia');
+(11, '2025-06-03', '11:35', 'GDL', 'Bostezo'),
+(12, '2025-06-03', '11:45', 'GDL', 'Fatiga');
 
 -- Alertas por sesión
 INSERT INTO Alertas_por_sesion (RVP2, RVP3) VALUES

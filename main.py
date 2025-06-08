@@ -409,7 +409,7 @@ async def obtener_habitos_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     
-    # Obtener total de sesiones del usuario
+    #Obtener total de sesiones del usuario
     cursor.execute("""
         SELECT COUNT(*) FROM Sesiones_de_Manejo
         WHERE RVP1 = ?
@@ -457,29 +457,44 @@ async def obtener_habitos_usuario(rvp1: int):
 @app.post("/modo_padres")
 async def agregar_hijo(request: Request):    
     datos = await request.json()
-    rvp1 = datos.get("rvp1")
-    rvp1_h = datos.get("rvp1_h")
+    rvp1 = datos.get("rvp1") 
     Nombre_hijo = datos.get("Nombre_hijo")
     Telefono_hijo = datos.get("Telefono_hijo")
-    print(rvp1_h)
     conexion = conectar()
-    cursor = conexion.cursor()
+    cursor = conexion.cursor()    
     try:
+        # 1. Buscar al hijo en la tabla Usuarios
+        cursor.execute("""
+            SELECT RVP1 FROM Usuarios 
+            WHERE Nombre = ? AND Teléfono = ?
+        """, (Nombre_hijo, Telefono_hijo))
+        resultado = cursor.fetchone()
+
+        if resultado is None:
+            raise HTTPException(status_code=404, detail="No se encontró un usuario con ese nombre y teléfono")
+
+        rvp1_h = resultado[0]  
+        # 2. Insertar en Modo_Padres
         cursor.execute("""
             INSERT INTO Modo_Padres (RVP1, RVP1_H, Nombre_hijo, Telefono_hijo)
             VALUES (?, ?, ?, ?)
         """, (rvp1, rvp1_h, Nombre_hijo, Telefono_hijo))
+
         conexion.commit()
-        conexion.close()
-        return {"message": "modo padres configurado",
-                "rvp1_h": rvp1_h,
-                "nombrehijo": Nombre_hijo,
-                "telhijo": Telefono_hijo
-                }
+        return {
+            "message": "modo padres configurado",
+            "rvp1_h": rvp1_h,
+            "nombrehijo": Nombre_hijo,
+            "telhijo": Telefono_hijo
+        }
+
+    except HTTPException as he:
+        raise he
     except Exception as e:
         conexion.rollback()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
-
+    finally:
+        conexion.close()
 
 @app.post("/alertas")
 async def generar_alerta(request: Request):
