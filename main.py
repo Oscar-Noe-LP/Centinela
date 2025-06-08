@@ -384,25 +384,49 @@ async def obtener_contactos_confiables_usuario(rvp1: int):
 async def obtener_alertas_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
+    # Obtener total de sesiones del usuario
+    cursor.execute("""
+        SELECT COUNT(*) FROM Sesiones_de_Manejo
+        WHERE RVP1 = ?
+    """, (rvp1,))
+    total_sesiones = cursor.fetchone()[0]
+
+    # Obtener total de alertas generadas por el usuario
+    cursor.execute("""
+        SELECT COUNT(DISTINCT Alertas_por_sesion.RVP3)
+        FROM Sesiones_de_Manejo
+        JOIN Alertas_por_sesion ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
+        WHERE Sesiones_de_Manejo.RVP1 = ?
+    """, (rvp1,))
+    total_alertas = cursor.fetchone()[0]
+
+    # Obtener la última sesión y su duración
     cursor.execute("""
         SELECT 
-            Alertas_Generadas.RVP3,
-            Alertas_Generadas.Fecha,
-            Alertas_Generadas.Hora,
-            Alertas_Generadas.Ubicación,
-            Alertas_Generadas.Tipo
-        FROM Alertas_Generadas
-        JOIN Alertas_por_sesion ON Alertas_Generadas.RVP3 = Alertas_por_sesion.RVP3
-        JOIN Sesiones_de_Manejo ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
-        JOIN Usuarios ON Sesiones_de_Manejo.RVP1 = Usuarios.RVP1
-        WHERE Usuarios.RVP1 = ?
+            Fecha_Inicio || ' ' || Hora_Inicio AS inicio_ultima_sesion,
+            ROUND((julianday(Fecha_Fin || ' ' || Hora_Fin) - 
+                julianday(Fecha_Inicio || ' ' || Hora_Inicio)) * 24 * 60) AS duracion_minutos
+        FROM Sesiones_de_Manejo
+        WHERE RVP1 = ?
+        ORDER BY Fecha_Inicio DESC, Hora_Inicio DESC
+        LIMIT 1
     """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return [
-        {"id_alerta": fila[0], "Fecha": fila[1], "Hora": fila[2], "Ubicacion": fila[3], "tipo": fila[4]}
-        for fila in resultado
-    ]
+    fila_ultima = cursor.fetchone()
+
+    if fila_ultima:
+        return {
+            "totalsesiones": total_sesiones,
+            "totalalertas": total_alertas,
+            "ultimasesion": fila_ultima[0],
+            "duracion": fila_ultima[1]
+        }
+    else:
+        return {
+            "totalsesiones": total_sesiones,
+            "totalalertas": total_alertas,
+            "ultimasesion": None,
+            "duracion": None
+        }
 
 @app.get("/habitosuser/{rvp1}")
 async def obtener_habitos_usuario(rvp1: int):
@@ -553,23 +577,12 @@ async def cerrar_sesion(request: Request):
 
 
 
-@app.put("/act_user")
-async def actualizar_datos_usuario(rvp1: int, nombre: str, telefono: str):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        UPDATE Usuarios
-        SET Nombre = ?, Teléfono = ?
-        WHERE RVP1 = ?
-    """, (nombre, telefono, rvp1))
-    new = cursor.fetchone()
-    conexion.commit()
-    conexion.close()
-    if new:
-        return {"mensaje": "Usuario actualizado con éxito"}
-    else:
-        raise HTTPException(status_code=400, detail="Error al actualizar usuario")
- 
+
+
+
+
+
+
 @app.post("/tonos")
 async def agregar_tono_sistema(nombre_tono: str):
     conexion = conectar()
@@ -585,7 +598,8 @@ async def agregar_tono_sistema(nombre_tono: str):
         return {"mensaje": "tono agregado con éxito"}
     else:
         raise HTTPException(status_code=400, detail="Error al agregar tono")
- 
+
+
 @app.post("/configuracion")
 async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str):
     conexion = conectar()
@@ -602,8 +616,7 @@ async def configurar(rvp1: int, rvp8: int, alertas_visuales: bool, tema_app: str
     else:
         raise HTTPException(status_code=400, detail="Error al configurar app")
     
- 
- 
+
 @app.post("/alertas/destinatarios")
 async def notificar_contactos(rvp3: int, rvp5: int):
     conexion = conectar()
@@ -636,32 +649,7 @@ async def obtener_configuracion_usuario(rvp1: int):
  
 
 
-@app.get("/sesion/{rvp1}")
-def obtener_sesiones_manejo(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Sesiones_de_Manejo.Fecha_Inicio, Sesiones_de_Manejo.Hora_Inicio, Sesiones_de_Manejo.Fecha_Fin, Sesiones_de_Manejo.Hora_Fin
-        FROM Sesiones_de_Manejo
-        WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
  
-@app.get("/alertas/sesion/{rvp1}")
-def obtener_alertas(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT Alertas_Generadas.Fecha, Alertas_Generadas.Hora, Alertas_Generadas.Ubicación, Alertas_Generadas.Contenido
-        FROM Alertas_Generadas
-        JOIN Sesiones_de_Manejo ON Sesiones_de_Manejo.RVP2 = Alertas_Generadas.RVP2
-        WHERE Sesiones_de_Manejo.RVP1 = ? AND Sesiones_de_Manejo.Fecha_Fin >= CURRENT_DATE
-    """, (rvp1,))
-    resultado = cursor.fetchall()
-    conexion.close()
-    return resultado
  
 @app.get("/alertas/destinatarios/{rvp3}")
 def obtener_destinatarios_alerta(rvp3: int):
