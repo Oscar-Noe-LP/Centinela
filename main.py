@@ -404,6 +404,48 @@ async def obtener_alertas_usuario(rvp1: int):
         for fila in resultado
     ]
 
+@app.get("/habitosuser/{rvp1}")
+async def obtener_habitos_usuario(rvp1: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT 
+            Usuarios.RVP1 AS id_usuario,
+            COUNT(DISTINCT Sesiones_de_Manejo.RVP2) AS total_sesiones,
+            COUNT(Alertas_Generadas.RVP3) AS total_alertas,
+            Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio AS inicio_ultima_sesion,
+            ROUND((julianday(Sesiones_de_Manejo.Fecha_Fin || ' ' || Sesiones_de_Manejo.Hora_Fin) - 
+                julianday(Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio)) * 24 * 60) AS duracion_minutos
+        FROM Usuarios
+        LEFT JOIN Sesiones_de_Manejo 
+            ON Sesiones_de_Manejo.RVP1 = Usuarios.RVP1
+        LEFT JOIN Alertas_por_sesion 
+            ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
+        LEFT JOIN Alertas_Generadas 
+            ON Alertas_Generadas.RVP3 = Alertas_por_sesion.RVP3
+        WHERE Usuarios.RVP1 = ?
+        AND Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio = (
+            SELECT MAX(Fecha_Inicio || ' ' || Hora_Inicio)
+            FROM Sesiones_de_Manejo
+            WHERE RVP1 = Usuarios.RVP1
+        )
+        GROUP BY 
+            Usuarios.RVP1, 
+            Sesiones_de_Manejo.Fecha_Inicio, 
+            Sesiones_de_Manejo.Hora_Inicio
+    """, (rvp1,))
+    fila = cursor.fetchone()
+    conexion.close()
+    if fila:
+        return {
+            "total_sesiones": fila[1],
+            "total_alertas": fila[2],
+            "inicio_ultima_sesion": fila[3],
+            "duracion_ultima_sesion_en_minutos": fila[4]
+        }
+    else:
+        return {"mensaje": "No se encontró información para este usuario"}
+
 
 @app.post("/modo_padres")
 async def agregar_hijo(request: Request):    
