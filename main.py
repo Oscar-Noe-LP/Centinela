@@ -574,7 +574,7 @@ async def agregar_hijo(request: Request):
 
 
 @app.get("/modopadres/{rvp1}")
-def obtener_hijos(rvp1: int):
+async def obtener_hijos(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
@@ -588,3 +588,29 @@ def obtener_hijos(rvp1: int):
         {"rvph": fila[0], "Nombre_hijo": fila[1], "Tel_hijo": fila[2]}
         for fila in resultado
     ]
+
+
+@app.post("/borrarhijo")
+async def eliminar_hijo(request: Request):
+    try:
+        datos = await request.json()
+        rvp1 = datos.get("rvp1")
+        rvp1_h = datos.get("rvp1_h")
+
+        if rvp1 is None or rvp1_h is None:
+            raise HTTPException(status_code=400, detail="Faltan id_usuario o id_contacto")
+
+        conn = conectar()
+        cursor = conn.cursor()
+        cursor.execute("""
+            DELETE FROM Modo_Padres
+            WHERE RVP1 = ? AND RVP1_H = ?
+        """, (rvp1, rvp1_h))
+        if cursor.rowcount == 0:
+            conn.close()
+            raise HTTPException(status_code=404, detail="Relación no encontrada.")
+        conn.commit()
+        conn.close()
+        return {"mensaje": "Hijo eliminado correctamente."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
