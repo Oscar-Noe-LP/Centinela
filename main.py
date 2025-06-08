@@ -380,6 +380,31 @@ async def obtener_contactos_confiables_usuario(rvp1: int):
     ]
 
 
+@app.get("/alertasuser/{rvp1}")
+async def obtener_alertas_usuario(rvp1: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT 
+            Alertas_Generadas.RVP3,
+            Alertas_Generadas.Fecha,
+            Alertas_Generadas.Hora,
+            Alertas_Generadas.Ubicación,
+            Alertas_Generadas.Tipo
+        FROM Alertas_Generadas
+        JOIN Alertas_por_sesion ON Alertas_Generadas.RVP3 = Alertas_por_sesion.RVP3
+        JOIN Sesiones_de_Manejo ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
+        JOIN Usuarios ON Sesiones_de_Manejo.RVP1 = Usuarios.RVP1
+        WHERE Usuarios.RVP1 = ?
+    """, (rvp1,))
+    resultado = cursor.fetchall()
+    conexion.close()
+    return [
+        {"id_alerta": fila[0], "Fecha": fila[1], "Hora": fila[2], "Ubicacion": fila[3], "tipo": fila[4]}
+        for fila in resultado
+    ]
+
+
 @app.post("/modo_padres")
 async def agregar_hijo(request: Request):    
     datos = await request.json()
