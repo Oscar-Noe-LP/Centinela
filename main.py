@@ -384,6 +384,31 @@ async def obtener_contactos_confiables_usuario(rvp1: int):
 async def obtener_alertas_usuario(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
+    cursor.execute("""
+        SELECT 
+            Alertas_Generadas.RVP3,
+            Alertas_Generadas.Fecha,
+            Alertas_Generadas.Hora,
+            Alertas_Generadas.Ubicación,
+            Alertas_Generadas.Tipo
+        FROM Alertas_Generadas
+        JOIN Alertas_por_sesion ON Alertas_Generadas.RVP3 = Alertas_por_sesion.RVP3
+        JOIN Sesiones_de_Manejo ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
+        JOIN Usuarios ON Sesiones_de_Manejo.RVP1 = Usuarios.RVP1
+        WHERE Usuarios.RVP1 = ?
+    """, (rvp1,))
+    resultado = cursor.fetchall()
+    conexion.close()
+    return [
+        {"id_alerta": fila[0], "Fecha": fila[1], "Hora": fila[2], "Ubicacion": fila[3], "tipo": fila[4]}
+        for fila in resultado
+    ]
+
+@app.get("/habitosuser/{rvp1}")
+async def obtener_habitos_usuario(rvp1: int):
+    conexion = conectar()
+    cursor = conexion.cursor()
+    
     # Obtener total de sesiones del usuario
     cursor.execute("""
         SELECT COUNT(*) FROM Sesiones_de_Manejo
@@ -427,48 +452,6 @@ async def obtener_alertas_usuario(rvp1: int):
             "ultimasesion": None,
             "duracion": None
         }
-
-@app.get("/habitosuser/{rvp1}")
-async def obtener_habitos_usuario(rvp1: int):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    cursor.execute("""
-        SELECT 
-            Usuarios.RVP1 AS id_usuario,
-            COUNT(Sesiones_de_Manejo.RVP2) AS total_sesiones,
-            COUNT(Alertas_Generadas.RVP3) AS total_alertas,
-            Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio AS inicio_ultima_sesion,
-            ROUND((julianday(Sesiones_de_Manejo.Fecha_Fin || ' ' || Sesiones_de_Manejo.Hora_Fin) - 
-                julianday(Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio)) * 24 * 60) AS duracion_minutos
-        FROM Usuarios
-        LEFT JOIN Sesiones_de_Manejo 
-            ON Sesiones_de_Manejo.RVP1 = Usuarios.RVP1
-        LEFT JOIN Alertas_por_sesion 
-            ON Alertas_por_sesion.RVP2 = Sesiones_de_Manejo.RVP2
-        LEFT JOIN Alertas_Generadas 
-            ON Alertas_Generadas.RVP3 = Alertas_por_sesion.RVP3
-        WHERE Usuarios.RVP1 = ?
-        AND Sesiones_de_Manejo.Fecha_Inicio || ' ' || Sesiones_de_Manejo.Hora_Inicio = (
-            SELECT MAX(Fecha_Inicio || ' ' || Hora_Inicio)
-            FROM Sesiones_de_Manejo
-            WHERE RVP1 = Usuarios.RVP1
-        )
-        GROUP BY 
-            Usuarios.RVP1, 
-            Sesiones_de_Manejo.Fecha_Inicio, 
-            Sesiones_de_Manejo.Hora_Inicio
-    """, (rvp1,))
-    fila = cursor.fetchone()
-    conexion.close()
-    if fila:
-        return {
-            "totalsesiones": fila[1],
-            "totalalertas": fila[2],
-            "ultimasesion": fila[3],
-            "duracion": fila[4]
-        }
-    else:
-        return {"mensaje": "No se encontró información para este usuario"}
 
 
 @app.post("/modo_padres")
