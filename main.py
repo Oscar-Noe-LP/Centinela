@@ -572,17 +572,19 @@ async def agregar_hijo(request: Request):
         conexion.close()
         raise HTTPException(status_code=500, detail=f"Error: {e}")
 
- 
+
 @app.get("/modopadres/{rvp1}")
-def obtener_modo_padre_usuario(rvp1: int):
+def obtener_hijos(rvp1: int):
     conexion = conectar()
     cursor = conexion.cursor()
     cursor.execute("""
-        SELECT Usuarios.Nombre, Modo_Padres.Tipo_de_notificación
+        SELECT Modo_Padres.RVP1_H, Modo_Padres.Nombre_hijo, Modo_Padres.Telefono_hijo
         FROM Modo_Padres
-        JOIN Usuarios ON Usuarios.RVP1 = Modo_Padres.RVP1_H
         WHERE Modo_Padres.RVP1 = ?
     """, (rvp1,))
-    resultado = cursor.fetchone()
+    resultado = cursor.fetchall()
     conexion.close()
-    return resultado
+    return [
+        {"rvph": fila[0], "Nombre_hijo": fila[1], "Tel_hijo": fila[2]}
+        for fila in resultado
+    ]
