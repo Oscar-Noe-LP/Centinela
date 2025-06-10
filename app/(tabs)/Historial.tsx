@@ -1,23 +1,58 @@
-import React, {useState} from 'react';
-import {SafeAreaView, View, Text, StyleSheet, ScrollView, TextInput, FlatList } from 'react-native';
- 
-interface Alerta {
+import React, {useEffect, useState} from 'react';
+import {SafeAreaView, View, Text, StyleSheet, TextInput, FlatList } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+
+interface Alertas {
   id: string;
   fecha: string;
   hora: string;
   ubicacion: string;
   detalle: string;
 }
- 
+
+interface Historial {
+    totalsesiones: string;
+    totalalertas: string;
+    ultimasesion: string;
+    duracion: string;    
+}
+
+
 export default function Historial() {
-    //const [alertas, setAlertas] = useState<Alerta[]>([]);
- 
-    const alertas: Alerta[] = [
-        { id: '1', fecha: '22042025', hora: 'afxad', ubicacion: 'lol', detalle: 'Bostezo'},
-        { id: '2', fecha: '23042025', hora: 'afxad', ubicacion: 'lol', detalle: 'Fatiga visual'},
-        { id: '3', fecha: '230425', hora: 'afxad', ubicacion: 'saa', detalle: 'Fatiga visual'},
-    ];
- 
+    const [alertas, setAlertas] = useState<Alertas[]>([]);
+    const [habitos, setHabitos] = useState<Historial | null>(null);
+    
+    useEffect(() => {
+        const MostrAlertas = async () => {
+            const rvp1 = await AsyncStorage.getItem('IdUsuario');
+            if (rvp1) {
+                try {
+                    const responseAler = await axios.get(`https://centinela.onrender.com/alertasuser/${rvp1}`);
+                    const Alertaslist = responseAler.data.map((alerta: any) => ({
+                        id: String(alerta.id_alerta),
+                        fecha: alerta.Fecha,
+                        hora: alerta.Hora,
+                        ubicacion: alerta.Ubicacion,
+                        detalle: alerta.tipo
+                    }));
+                    setAlertas(Alertaslist);
+                } catch (error) {
+                    console.error("Error al obtener las alertas:", error);
+                }
+                try {
+                    const responsehab = await axios.get(`https://centinela.onrender.com/habitosuser/${rvp1}`);
+                    setHabitos(responsehab.data); 
+                    console.log(responsehab.data);
+                 } catch (error) {
+                    console.error("Error al obtener hábitos:", error);
+                }
+            }
+        };
+        MostrAlertas();
+    }, []);
+
+
     return (
         <SafeAreaView style={styles.container}>
             <FlatList
@@ -49,26 +84,17 @@ export default function Historial() {
                     <View style={styles.habitosContainer}>
                         <Text style={styles.subtitulo}>Tus hábitos de manejo</Text>
                         <View style={styles.habitos}>
-                            <TextInput
-                                style={styles.habitoInput}
-                                value="Sesión: 23/04/2025 10:30 AM"
-                                editable={false}
-                            />
-                            <TextInput
-                                style={styles.habitoInput}
-                                value="Duración: 45 minutos"
-                                editable={false}
-                            />
-                            <TextInput
-                                style={styles.habitoInput}
-                                value="Total de alertas: 3"
-                                editable={false}
-                            />
-                            <TextInput
-                                style={styles.habitoInput}
-                                value="Última sesión: 22/04/2025"
-                                editable={false}
-                            />
+                            <Text style={styles.habitoLabel}>Total de sesiones:</Text>
+                            <Text style={styles.habitoInput}>{habitos?.totalsesiones || 'Cargando...'}</Text>
+
+                            <Text style={styles.habitoLabel}>Total de alertas:</Text>
+                            <Text style={styles.habitoInput}>{habitos?.totalalertas || 'Cargando...'}</Text>
+
+                            <Text style={styles.habitoLabel}>Inicio de última sesión:</Text>
+                            <Text style={styles.habitoInput}>{habitos?.ultimasesion || 'Cargando...'}</Text>
+    
+                            <Text style={styles.habitoLabel}>Duración de última sesión (min):</Text>
+                            <Text style={styles.habitoInput}>{habitos?.duracion || 'Cargando...'}</Text>
                         </View>
                     </View>
                   </>
@@ -77,7 +103,7 @@ export default function Historial() {
         </SafeAreaView>
     );
 }
- 
+
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -111,18 +137,17 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     celda: {
-        borderWidth:1,
+        borderWidth: 1,
         borderColor: '#1ba098',
         flex: 1,
         padding: 8,
         textAlign: 'center',
-
-},    
+    },
     habitosContainer: {
         backgroundColor: '#00A19D',
         borderRadius: 8,
+        padding: 15, 
         marginTop: '10%',
-        padding: 15,
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
@@ -133,23 +158,29 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: 'white',
-        marginBottom: 15,
+        marginBottom: 15, 
     },
     habitos: {
         backgroundColor: 'white',
         borderRadius: 8,
-        padding: 15,
-        paddingBottom: 5,
+        padding: 15, 
+        paddingBottom: 5, 
     },
     habitoInput: {
         backgroundColor: 'white',
         borderRadius: 6,
         paddingVertical: 8,
         paddingHorizontal: 10,
-        marginBottom: 15,
+        marginBottom: 15, 
         fontSize: 14,
         color: '#333',
         borderWidth: 1,
         borderColor: '#000',
+    },
+    habitoLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#000',
+    marginBottom: 3,
     },
 });

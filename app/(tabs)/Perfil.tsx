@@ -16,7 +16,6 @@ interface Usuario {
   Teléfono: string;
 }
 
-//checaa como se hace Aqui xd
 export default function Configuracion() {
   const [showVisualAlerts, setShowVisualAlerts] = useState(true);
   const [selectedTone, setSelectedTone] = useState('Lluvia');

@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {SafeAreaView, View, Text, FlatList, Modal, TextInput, TouchableOpacity, StyleSheet, Image, Alert} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 
-interface Alerta {
+interface Alertas {
   id: string;
-  fechaHora: string;
+  fecha: string;
+  hora: string;
   ubicacion: string;
   detalle: string;
-  usuario: string;
 }
 
 interface Hijo {
@@ -22,13 +22,29 @@ export default function ModuloPadres() {
   const [nombreNuevoHijo, setNombreNuevoHijo] = useState('');
   const [telefonoNuevoHijo, setTelefonoNuevoHijo] = useState('');
   const [listaHijos, setListaHijos] = useState<Hijo[]>([]);
+  const [alertas, setAlertas] = useState<Alertas[]>([]);
 
-  const listaAlertas: Alerta[] = [
-    { id: '1', fechaHora: '22042025', ubicacion: 'lol', detalle: 'Bostezo', usuario: 'Arturo Barajas' },
-    { id: '2', fechaHora: '23042025', ubicacion: 'lol', detalle: 'Fatiga visual', usuario: 'Oscar López' },
-    { id: '3', fechaHora: '230425', ubicacion: 'saa', detalle: 'Fatiga visual', usuario: 'Jesús Coronado' },
-  ];
+  useEffect(() => {
+      const MostrarHijos = async () => {
+          const rvp1 = await AsyncStorage.getItem('IdUsuario');
+          if (rvp1) {
+              try {
+                  const reshijos = await axios.get(`https://centinela.onrender.com/modopadres/${rvp1}`);
+                  const hijos = reshijos.data.map((hijo: any) => ({
+                      id: hijo.rvph,
+                      nombre: hijo.Nombre_hijo,
+                      telefono: hijo.Tel_hijo
+                  }));
+                  setListaHijos(hijos);
+              } catch (error) {
+                  console.error("Error al obtener los hijos asociados:", error);
+              }
+          }
+      };
+      MostrarHijos();
+  }, []);
 
+  
   const agregarHijo = async () => {
     if (nombreNuevoHijo.trim() !== '' && telefonoNuevoHijo.trim() !== '') {
       const rvp1 = await AsyncStorage.getItem('IdUsuario');
@@ -36,16 +52,16 @@ export default function ModuloPadres() {
         try {
           const response = await axios.post('https://centinela.onrender.com/modo_padres', {
             rvp1: rvp1,
-            rvp1_h: Math.floor(Math.random() * 1000),
             Nombre_hijo: nombreNuevoHijo,
             Telefono_hijo: telefonoNuevoHijo,
           });
           const nuevoHijo = {
             id: response.data.rvp1_h,
-            nombre: nombreNuevoHijo,
-            telefono: telefonoNuevoHijo
+            nombre: response.data.nombrehijo,
+            telefono: response.data.telhijo
           };
           console.log('Hijo registrado:', response.data);
+          Alert.alert('Éxito', 'Hijo asociado correctamente');
           setListaHijos(prev => [...prev, nuevoHijo]);
         } catch (error) {
           console.error('Error al registrar hijos:', error);
@@ -58,18 +74,41 @@ export default function ModuloPadres() {
     }
   };
 
-  const verHistorial = (hijo: Hijo) => {
-    console.log('Ver historial de', hijo.nombre);
+  const verHistorial = async (id: string) => {
+    try {
+      const responseAler = await axios.get(`https://centinela.onrender.com/alertasuser/${id}`);
+      const Alertaslist = responseAler.data.map((alerta: any) => ({
+        id: String(alerta.id_alerta),
+        fecha: alerta.Fecha,
+        hora: alerta.Hora,
+        ubicacion: alerta.Ubicacion,
+        detalle: alerta.tipo
+      }));
+      setAlertas(Alertaslist);
+    } catch (error) {
+      console.error("Error al obtener las alertas:", error);
+    }
   };
-    
-  const eliminarHijo = (id: string) => {
-    setListaHijos(listaHijos.filter((h) => h.id !== id));
+  
+  const eliminarHijo = async (id: string) => {
+    const rvp1 = await AsyncStorage.getItem('IdUsuario');
+    try {
+      const response = await axios.post('https://centinela.onrender.com/borrarhijo', {
+        rvp1: rvp1,
+        rvp1_h: id
+      });
+      console.log("Hijo eliminado:", response.data);
+      setListaHijos(listaHijos.filter((hijo) => hijo.id !== id));
+    } catch (error) {
+      console.log('Error al eliminar al hijo:', error);
+    }
   };
+
 
   return (
     <SafeAreaView style={estilos.contenedor}>
       <FlatList
-        data={listaAlertas}
+        data={alertas}
         keyExtractor={(item) => item.id}
         ListHeaderComponent={
           <>
@@ -79,26 +118,25 @@ export default function ModuloPadres() {
 
           <View style={estilos.tabla}>
             <View style={estilos.filaEncabezado}>
-              <Text style={estilos.celdaEncabezado}>Fecha y hora</Text>
+              <Text style={estilos.celdaEncabezado}>Fecha</Text>
+              <Text style={estilos.celdaEncabezado}>Hora</Text>
               <Text style={estilos.celdaEncabezado}>Ubicación</Text>
               <Text style={estilos.celdaEncabezado}>Detalles</Text>
-              <Text style={estilos.celdaEncabezado}>Usuario</Text>
             </View>
           </View>
           </>
         }
         renderItem={({ item }) => (
             <View style={estilos.fila}>
-              <Text style={estilos.celda}>{item.fechaHora}</Text>
+              <Text style={estilos.celda}>{item.fecha}</Text>
+              <Text style={estilos.celda}>{item.hora}</Text>
               <Text style={estilos.celda}>{item.ubicacion}</Text>
               <Text style={estilos.celda}>{item.detalle}</Text>
-              <Text style={estilos.celda}>{item.usuario}</Text>
             </View>
         )}
         ListFooterComponent={
           <>
-            <Text style={estilos.tituloSecundario}>Hijos asociados</Text>
-            
+            <Text style={estilos.tituloSecundario}>Hijos asociados</Text>            
             <FlatList
               data={listaHijos}
               keyExtractor={(item) => item.id}
@@ -107,7 +145,7 @@ export default function ModuloPadres() {
                   <View style={estilos.hijoFila}>
                     <Text style={estilos.hijoNombre}>{item.nombre}</Text>
                     <View style={estilos.botonesHijo}>
-                      <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(item)}>
+                      <TouchableOpacity style={estilos.botonAccion} onPress={() => verHistorial(item.id)}>
                         <Text style={estilos.textoBoton}>Ver Historial</Text>
                       </TouchableOpacity>
                       <TouchableOpacity style={estilos.botonAccion} onPress={() => eliminarHijo(item.id)}>
@@ -118,7 +156,7 @@ export default function ModuloPadres() {
                   <Text style={estilos.telefonoHijo}>{item.telefono}</Text>
                 </View>
               )}
-              scrollEnabled={false} // Esto es importante para que no interfiera con el scroll principal
+              scrollEnabled={false}
             />
 
             <TouchableOpacity
@@ -201,12 +239,14 @@ const estilos = StyleSheet.create({
     borderColor: '#1ba098',
   },
   celdaEncabezado: {
+    borderWidth: 1,
     flex: 1,
     padding: 8,
     fontWeight: 'bold',
     textAlign: 'center',
   },
   celda: {
+    borderWidth: 1,
     flex: 1,
     padding: 8,
     textAlign: 'center',

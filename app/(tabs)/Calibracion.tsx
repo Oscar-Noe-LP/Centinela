@@ -1,7 +1,9 @@
 import { CameraView, CameraType, useCameraPermissions, CameraMode } from 'expo-camera';
-import { useState, useEffect} from 'react';
-import {SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Modal } from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
+import { useState, useEffect, useRef } from 'react';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View, Modal, ActivityIndicator } from 'react-native';
+import { useIsFocused } from '@react-navigation/native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Calibración() {
   const [permission, requestPermission] = useCameraPermissions();
@@ -11,20 +13,59 @@ export default function Calibración() {
   const estaEnfocada = useIsFocused();
   const [MostrarCamara, setMostrarCamara] = useState(false);
   const [mostrarModal, setMostrarModal] = useState(true);
+  const [EAR, setEAR] = useState<number | null>(null);
+  const [cargando, setCargando] = useState(false);
+  const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
     if (!permission) requestPermission();
   }, [permission]);
-  
+
   useEffect(() => {
     if (estaEnfocada) {
       setMostrarCamara(true);
       setMostrarModal(true);
-    }
-    else {
+    } else {
       setMostrarCamara(false);
     }
   }, [estaEnfocada]);
+
+  const tomarFotoYMandar = async () => {
+    if (cameraRef.current) {
+      try {
+        setCargando(true);
+        const foto = await cameraRef.current.takePictureAsync({          
+          quality: 0.8,
+          skipProcessing: true,
+          shutterSound: false
+        });
+        if (foto) {
+          const formData = new FormData();
+          const uriParts = foto.uri.split(".");
+          const fileType = uriParts[uriParts.length - 1];
+          formData.append("file", {
+            uri: foto.uri,
+            name: `image.${fileType}`,
+            type: `image/${fileType}`,
+          } as any);
+          const res = await axios.post('https://centinela.onrender.com/promedio', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          setEAR(null);
+          const EAR = res.data.EAR;
+          await AsyncStorage.setItem('IdUsuario', EAR.toString());
+          setEAR(EAR);
+        }
+      } catch (error) {
+        console.error('Error al tomar o enviar la foto:', error);
+        setEAR(null);
+      } finally {
+        setCargando(false);
+      }
+    }
+  };
 
   if (!permission || permission.status !== "granted") {
     return (
@@ -37,28 +78,43 @@ export default function Calibración() {
   return (
     <SafeAreaView style={estilos.container}>
       <Text style={estilos.tituloPrincipal}>Módulo de Calibración</Text>
+
       {MostrarCamara && (
-        <CameraView 
-        style={estilos.camera}           
-        mode={cameraMode}
-        zoom={cameraZoom}
-        facing={facing}
-        ratio="16:9"
-        animateShutter={false}>
-          <View style={estilos.Guia} />
-        </CameraView>
+        <>
+          <CameraView
+            ref={cameraRef}
+            style={estilos.camera}
+            mode={cameraMode}
+            zoom={cameraZoom}
+            facing={facing}
+            ratio="16:9"
+          >
+            <View style={estilos.Guia} />
+          </CameraView>
+
+          <TouchableOpacity
+            style={estilos.botonCaptura}
+            onPress={tomarFotoYMandar}
+            disabled={cargando}
+          >
+            <Text style={estilos.textoBoton}>{cargando ? 'Procesando...' : 'Tomar Foto'}</Text>
+          </TouchableOpacity>
+
+          {EAR !== null && (
+            <Text style={estilos.textoEAR}>Promedio detectado: {EAR.toFixed(3)}</Text>
+          )}
+        </>
       )}
-      <Modal
-        visible={mostrarModal}
-        animationType="slide"
-        transparent
-      >
+
+      <Modal visible={mostrarModal} animationType="slide" transparent>
         <View style={estilos.modal}>
           <View style={estilos.Contenidomodal}>
             <Text style={estilos.Titulomodal}>Instrucciones:</Text>
             <Text style={estilos.Textomodal}>
-              1.- Coloca el celular en una posición en la que detecte tu rostro correctamente, de preferencia dentro del rectángulo de guía.{"\n\n"}
-              2.- Viaja a la pantalla de "Detección" (navega mediante la barra inferior) y comienza a usar tu "Guardián en el camino!"
+              1.- Manten tu rostro en posición neutral dentro del rectángulo verde y toma una foto para detectar tu rostro correctamente.{"\n\n"}
+              2.- Después de ello, coloca el teléfono en una posición en la pueda ver tu rostro para una detección precisa.{"\n\n"}
+              3.- Viaja a la pantalla de "Detección" (navega mediante la barra inferior) y comienza a usar tu "Guardián en el camino!"{"\n\n"}
+              4.- Si lo deseas, puedes volver a tomar la foto para volver a identificar correctamente la forma de tu rostro.
             </Text>
             <TouchableOpacity
               style={estilos.botonAceptar}
@@ -121,7 +177,7 @@ const estilos = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
     color: '#333',
-    textAlign: 'justify', 
+    textAlign: 'justify',
   },
   botonAceptar: {
     backgroundColor: '#4CAF50',
@@ -129,9 +185,22 @@ const estilos = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  botonCaptura: {
+    backgroundColor: '#1ba098',
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+    margin: 16,
+  },
   textoBoton: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  textoEAR: {
+    fontSize: 18,
+    textAlign: 'center',
+    marginBottom: 16,
+    color: 'black',
   },
 });

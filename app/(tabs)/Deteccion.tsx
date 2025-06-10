@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator} from "react-native";
+import {SafeAreaView, View, StyleSheet, Text, ActivityIndicator, TouchableOpacity} from "react-native";
 import {CameraView, useCameraPermissions, CameraMode, CameraType,} from "expo-camera";
 import * as ImageManipulator from 'expo-image-manipulator';
 import Animated, {useSharedValue, useAnimatedStyle, withSpring,} from "react-native-reanimated";
@@ -8,8 +8,11 @@ import axios from "axios";
 import * as Location from "expo-location";
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Brightness from 'expo-brightness';
+
 
 const Linkapi = "wss://centinela.onrender.com/ws/deteccion"; 
+const promediousuario = AsyncStorage.getItem('Promedio');
 
 export default function Deteccion() {
   const cameraRef = useRef<CameraView>(null);
@@ -24,9 +27,10 @@ export default function Deteccion() {
   const socketRef = useRef<WebSocket | null>(null);
   const [contadorBostezo, setContadorBostezo] = useState(0);
   const [contadorFatiga, setContadorFatiga] = useState(0);
-  const [alertaGuardada, setAlertaGuardada] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [sound, setSound] = useState<Audio.Sound>();
+  const brilloAnterior = useRef(1);
+  const [modoAhorro, setModoAhorro] = useState(false);
   const [SesionActual, setSesionActual] = useState<number | null>(null);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
@@ -38,6 +42,15 @@ export default function Deteccion() {
   const ahora = () => new Date().getTime();
   const ultimosAlertas = useRef({ Bostezo: 0, Fatiga: 0 });
 
+  
+  useEffect(() => {
+    (async () => {
+      const { status } = await Brightness.requestPermissionsAsync();
+      if (status === 'granted') {
+        Brightness.setSystemBrightnessAsync(1);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!permission) requestPermission();
@@ -203,8 +216,6 @@ export default function Deteccion() {
     if (cameraRef.current && socketRef.current?.readyState === WebSocket.OPEN) {
       try {
         const photo = await cameraRef.current.takePictureAsync({ quality: 0.6, shutterSound: false, skipProcessing: true});
-
-
         if (photo && photo.uri) {
             const manipulada = await ImageManipulator.manipulateAsync(
               photo.uri,
@@ -232,6 +243,28 @@ export default function Deteccion() {
       }
     };
 
+  const activarModoAhorro = async () => {
+    try {
+      const brilloActual = await Brightness.getSystemBrightnessAsync();
+      brilloAnterior.current = brilloActual; 
+      await Brightness.setSystemBrightnessAsync(0.01); 
+      setModoAhorro(true);
+    } catch (error) {
+      console.error("Error activando modo ahorro:", error);
+    }
+  };
+
+  const desactivarModoAhorro = async () => {
+    try {
+      await Brightness.setSystemBrightnessAsync(brilloAnterior.current); 
+      setModoAhorro(false);
+    } catch (error) {
+      console.error("Error desactivando modo ahorro:", error);
+    }
+  };
+
+  
+
     if (!permission || permission.status !== "granted") {
     return (
       <SafeAreaView style={styles.container}>
@@ -253,17 +286,28 @@ export default function Deteccion() {
           animateShutter={false}
         />
       )}
+      {modoAhorro && (
+        <View style={styles.pantallaNegra} />
+      )}
       <Animated.View style={[styles.animatedContainer, animatedStyle]}>
         {loading && <ActivityIndicator size="large" color="#48c9b0" />}
         {prediction && !loading && (
           <View style={styles.predictionTextContainer}>
-            <Text style={styles.predictionText}>EAR: {prediction.EAR}</Text>
-            <Text style={styles.predictionText}>MAR: {prediction.MAR}</Text>
+            {/* <Text style={styles.predictionText}>EAR: {prediction.EAR}</Text> */}
+            {/* <Text style={styles.predictionText}>MAR: {prediction.MAR}</Text> */}
             <Text style={styles.predictionText}>Bostezo: {prediction.Bostezo}</Text>
             <Text style={styles.predictionText}>Fatiga: {prediction.Fatiga}</Text>
           </View>
         )}
       </Animated.View>
+      <View style={styles.controles}>
+        <TouchableOpacity style={[styles.boton, { backgroundColor: modoAhorro ? "#95a5a6" : "#2ecc71" }]} onPress={() => activarModoAhorro()}>
+          <Text style={styles.textoBoton}>Activar ahorro</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.boton, { backgroundColor: "#e74c3c" }]} onPress={() => desactivarModoAhorro()}>
+          <Text style={styles.textoBoton}>Desactivar ahorro</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -285,7 +329,7 @@ const styles = StyleSheet.create({
   },
   animatedContainer: {
     position: "absolute",
-    bottom: 40,
+    bottom: 60,
     alignSelf: "center",
     padding: 10,
     backgroundColor: "#ffffffcc",
@@ -298,5 +342,29 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: "#2c3e50",
+  },
+  pantallaNegra: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#000",
+    zIndex: 10,
+  },
+  boton: {
+  paddingVertical: 10,
+  paddingHorizontal: 20,
+  borderRadius: 8
+  },
+  textoBoton: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  controles: {
+  position: 'absolute',
+  bottom: 0,
+  width: '100%',
+  flexDirection: 'row',      
+  justifyContent: 'space-evenly',
+  alignItems: 'center',
+  zIndex: 99,
+  paddingHorizontal: 20,
   },
 });
