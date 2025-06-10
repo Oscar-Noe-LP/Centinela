@@ -9,12 +9,13 @@ import * as Location from "expo-location";
 import { Audio } from 'expo-av';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Brightness from 'expo-brightness';
-
+import { useRouter } from 'expo-router';
 
 const Linkapi = "wss://centinela.onrender.com/ws/deteccion"; 
 const promediousuario = AsyncStorage.getItem('Promedio');
 
 export default function Deteccion() {
+  const router = useRouter();
   const cameraRef = useRef<CameraView>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const [facing] = useState<CameraType>("front");
@@ -55,6 +56,7 @@ export default function Deteccion() {
   useEffect(() => {
     if (!permission) requestPermission();
   }, [permission]);
+
 
   useEffect(() => {
     if (estaEnfocada) {
@@ -263,7 +265,17 @@ export default function Deteccion() {
     }
   };
 
-  
+  const cerrarcamara = async () => {
+    try {
+      setMostrarCamara(false);
+      cerrarSesion(); 
+      desconectarWebSocket(); 
+      router.push('/(tabs)/Principal'); 
+    } catch (error) {
+      console.error("Error desactivando modo ahorro:", error);
+    }
+  };
+
 
     if (!permission || permission.status !== "granted") {
     return (
@@ -301,10 +313,10 @@ export default function Deteccion() {
         )}
       </Animated.View>
       <View style={styles.controles}>
-        <TouchableOpacity style={[styles.boton, { backgroundColor: modoAhorro ? "#95a5a6" : "#2ecc71" }]} onPress={() => activarModoAhorro()}>
+        <TouchableOpacity style={[styles.boton, { backgroundColor: modoAhorro ? "#1ba098" : "#4CAF50" }]} onPress={() => activarModoAhorro()}>
           <Text style={styles.textoBoton}>Activar ahorro</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[styles.boton, { backgroundColor: "#e74c3c" }]} onPress={() => desactivarModoAhorro()}>
+        <TouchableOpacity style={[styles.boton, { backgroundColor: "#1ba098" }]} onPress={() => desactivarModoAhorro()}>
           <Text style={styles.textoBoton}>Desactivar ahorro</Text>
         </TouchableOpacity>
       </View>

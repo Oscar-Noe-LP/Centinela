@@ -101,7 +101,7 @@ export default function Calibración() {
           </TouchableOpacity>
 
           {EAR !== null && (
-            <Text style={estilos.textoEAR}>Promedio detectado: {EAR.toFixed(3)}</Text>
+            <Text style={estilos.textoEAR}>Promedio detectado: {EAR.toFixed(2)}</Text>
           )}
         </>
       )}
