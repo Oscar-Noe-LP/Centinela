@@ -12,7 +12,6 @@ import * as Brightness from 'expo-brightness';
 import { useRouter } from 'expo-router';
 
 const Linkapi = "wss://centinela.onrender.com/ws/deteccion"; 
-const promediousuario = AsyncStorage.getItem('Promedio');
 
 export default function Deteccion() {
   const router = useRouter();
@@ -33,6 +32,7 @@ export default function Deteccion() {
   const brilloAnterior = useRef(1);
   const [modoAhorro, setModoAhorro] = useState(false);
   const [SesionActual, setSesionActual] = useState<number | null>(null);
+  const [promediousuario, setPromediousuario] = useState<number | null>(null);
   const scale = useSharedValue(1);
   const opacity = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -43,7 +43,6 @@ export default function Deteccion() {
   const ahora = () => new Date().getTime();
   const ultimosAlertas = useRef({ Bostezo: 0, Fatiga: 0 });
 
-  
   useEffect(() => {
     (async () => {
       const { status } = await Brightness.requestPermissionsAsync();
@@ -153,6 +152,18 @@ export default function Deteccion() {
     await sound.playAsync();
   };
 
+
+  const obtenerEAR = async () => {
+    try {
+      const valor = await AsyncStorage.getItem("Promedio");
+      console.log(valor);
+      if (valor) setPromediousuario(parseFloat(valor));
+      } catch (e) {
+      console.error("Error obteniendo EAR personalizado:", e);
+    }
+  };
+
+  
   const conectarWebSocket = () => {
     if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
       console.log("WebSocket ya está abierto");
@@ -167,7 +178,14 @@ export default function Deteccion() {
       if (data.error) {
         console.log("Error del servidor:", data.error);
       } else {
-        const { EAR, MAR, Bostezo, Fatiga } = data;
+        obtenerEAR();        
+        const { EAR, MAR, Bostezo } = data;
+        let fatigaDetectada = false;
+
+        if (promediousuario !== null && EAR < (promediousuario - 0.05)) {
+          fatigaDetectada = true;
+        }
+
         setContadorBostezo((prev) => {
           const nuevo = Bostezo ? prev + 1 : 0;
           if (nuevo === 3 && ahora() - ultimosAlertas.current.Bostezo > COOLDOWN) {
@@ -178,15 +196,13 @@ export default function Deteccion() {
         });
 
         setContadorFatiga((prev) => {
-          const nuevo = Fatiga ? prev + 1 : 0;
-
+          const nuevo = fatigaDetectada ? prev + 1 : 0;
 
         if (nuevo === 3 && ahora() - ultimosAlertas.current.Fatiga > COOLDOWN) {
           SonarAlerta();
           guardarAlerta("Fatiga");
           ultimosAlertas.current.Fatiga = ahora();
         }
-
           return nuevo;
         });
 
@@ -194,7 +210,7 @@ export default function Deteccion() {
           EAR: EAR?.toFixed(2),
           MAR: MAR?.toFixed(2),
           Bostezo: Bostezo ? "Sí" : "No",
-          Fatiga: Fatiga ? "Sí" : "No",
+          Fatiga: fatigaDetectada ? "Sí" : "No",
         });
       }
     };  
@@ -265,18 +281,6 @@ export default function Deteccion() {
     }
   };
 
-  const cerrarcamara = async () => {
-    try {
-      setMostrarCamara(false);
-      cerrarSesion(); 
-      desconectarWebSocket(); 
-      router.push('/(tabs)/Principal'); 
-    } catch (error) {
-      console.error("Error desactivando modo ahorro:", error);
-    }
-  };
-
-
     if (!permission || permission.status !== "granted") {
     return (
       <SafeAreaView style={styles.container}>
@@ -305,7 +309,7 @@ export default function Deteccion() {
         {loading && <ActivityIndicator size="large" color="#48c9b0" />}
         {prediction && !loading && (
           <View style={styles.predictionTextContainer}>
-            {/* <Text style={styles.predictionText}>EAR: {prediction.EAR}</Text> */}
+            <Text style={styles.predictionText}>EAR: {prediction.EAR}</Text>
             {/* <Text style={styles.predictionText}>MAR: {prediction.MAR}</Text> */}
             <Text style={styles.predictionText}>Bostezo: {prediction.Bostezo}</Text>
             <Text style={styles.predictionText}>Fatiga: {prediction.Fatiga}</Text>

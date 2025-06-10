@@ -53,10 +53,12 @@ export default function Calibración() {
               'Content-Type': 'multipart/form-data',
             },
           });
+          await AsyncStorage.removeItem('Promedio');
           setEAR(null);
-          const EAR = res.data.EAR;
-          await AsyncStorage.setItem('IdUsuario', EAR.toString());
-          setEAR(EAR);
+          let EAR = res.data.EAR;
+          await AsyncStorage.setItem('Promedio', EAR.toString());
+          setTimeout(() => setEAR(EAR), 10);
+          console.log(EAR);
         }
       } catch (error) {
         console.error('Error al tomar o enviar la foto:', error);
